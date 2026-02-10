@@ -259,7 +259,7 @@
 
     <!-- 거점 목록 -->
     <div class="flex-1 overflow-y-auto px-5 py-3">
-      <div id="spot-list" class="space-y-1.5"></div>
+      <div id="spot-list" class="space-y-1"></div>
     </div>
 
   </div>
@@ -701,21 +701,14 @@ function renderSpotList() {
   var html = '';
   spots.forEach(function(spot) {
     var checked = selectedSpots.has(spot.id);
-    html += '<label class="spot-item flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer ' +
+    html += '<label class="spot-item flex items-center gap-2 px-2.5 py-1.5 rounded-lg border cursor-pointer ' +
       (checked ? 'checked border-blue-200 bg-blue-50/50' : 'border-gray-100 bg-white') + '">' +
-      '<input type="checkbox" class="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ' +
+      '<input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" ' +
       'value="' + spot.id + '" ' + (checked ? 'checked' : '') +
       ' onchange="toggleSpot(' + spot.id + ', this.checked)">' +
-      '<div class="flex-1 min-w-0">' +
-      '<div class="flex items-center gap-1.5">' +
       '<span class="text-sm font-semibold text-gray-800 truncate">' + spot.name + '</span>' +
       '<span class="type-badge type-' + spot.type + '">' + spot.type + '</span>' +
-      '</div>' +
-      '<div class="flex items-center gap-3 mt-1 text-xs text-gray-500">' +
-      '<span>유권자 ' + fmt(spot.voterReach) + '</span>' +
-      '<span>피크 ' + spot.peakHour + '</span>' +
-      '</div>' +
-      '</div>' +
+      '<span class="ml-auto text-xs text-gray-400 whitespace-nowrap">' + fmt(spot.voterReach) + ' · ' + spot.peakHour + '</span>' +
       '</label>';
   });
 
