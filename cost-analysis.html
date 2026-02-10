@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>비용 분석 — 일렉트맵AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Pretendard Variable','Pretendard','system-ui','sans-serif']}}}}</script>
+<link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="antialiased bg-white text-gray-900">
+<div id="test-banner"></div>
+<div id="app-header"></div>
+
+<!-- Page Header -->
+<section class="bg-gradient-to-br from-amber-50 via-white to-white py-12 border-b border-gray-100">
+<div class="max-w-7xl mx-auto px-6">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-2xl">💰</div>
+<div>
+<h1 class="text-3xl font-bold">비용 분석</h1>
+<p class="text-gray-500 mt-1">선거 차량 운영 비용을 분석하고 최적화합니다</p>
+</div>
+</div>
+</div>
+</section>
+
+<div class="max-w-7xl mx-auto px-6 py-10 space-y-12">
+
+<!-- Section 1: 일일 운영비 계산기 -->
+<section>
+<h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+<svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+일일 운영비 계산기
+</h2>
+<div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+<div class="flex items-center gap-4 mb-6">
+<label class="font-semibold text-gray-700">차량 수</label>
+<div class="flex items-center gap-2">
+<button onclick="changeVehicles(-1)" class="w-10 h-10 bg-gray-100 rounded-lg text-xl font-bold hover:bg-gray-200 transition flex items-center justify-center">-</button>
+<input id="vehicleCount" type="number" min="1" max="5" value="2" class="w-16 text-center text-xl font-bold border border-gray-300 rounded-lg py-2" onchange="calculateCosts()">
+<button onclick="changeVehicles(1)" class="w-10 h-10 bg-gray-100 rounded-lg text-xl font-bold hover:bg-gray-200 transition flex items-center justify-center">+</button>
+</div>
+<span class="text-sm text-gray-500">대 (최대 5대)</span>
+</div>
+
+<div class="overflow-x-auto">
+<table class="data-table w-full">
+<thead>
+<tr>
+<th class="text-left">항목</th>
+<th class="text-right">단가</th>
+<th class="text-right">수량</th>
+<th class="text-right">소계</th>
+</tr>
+</thead>
+<tbody id="costTableBody"></tbody>
+<tfoot>
+<tr class="bg-blue-50">
+<td colspan="3" class="font-bold text-blue-900 text-lg py-4 px-4">일일 총 비용</td>
+<td class="text-right font-bold text-blue-600 text-xl py-4 px-4" id="dailyTotal">-</td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+</section>
+
+<!-- Section 2: 선거 기간 총 비용 -->
+<section>
+<h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+선거 기간 총 비용
+</h2>
+<div class="grid md:grid-cols-2 gap-6">
+<div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+<div class="flex items-center gap-4 mb-6">
+<label class="font-semibold text-gray-700">선거 운동 기간</label>
+<input id="campaignDays" type="number" min="1" max="30" value="14" class="w-20 text-center text-lg font-bold border border-gray-300 rounded-lg py-2" onchange="calculateCosts()">
+<span class="text-sm text-gray-500">일</span>
+</div>
+<div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white">
+<p class="text-sm text-blue-200">선거 기간 총 비용</p>
+<p class="text-4xl font-bold mt-2" id="totalCampaignCost">-</p>
+<p class="text-sm text-blue-200 mt-2" id="totalCampaignCostDesc"></p>
+</div>
+<div class="mt-4 grid grid-cols-2 gap-3">
+<div class="bg-gray-50 rounded-lg p-3 text-center">
+<p class="text-xs text-gray-500">일평균 비용</p>
+<p class="text-lg font-bold text-gray-800" id="avgDailyCost">-</p>
+</div>
+<div class="bg-gray-50 rounded-lg p-3 text-center">
+<p class="text-xs text-gray-500">차량당 비용</p>
+<p class="text-lg font-bold text-gray-800" id="perVehicleCost">-</p>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+<h3 class="font-bold text-gray-700 mb-4">비용 항목별 구성</h3>
+<div class="h-72"><canvas id="costBarChart"></canvas></div>
+</div>
+</div>
+<div class="mt-6 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+<h3 class="font-bold text-gray-700 mb-4">비용 배분 비율</h3>
+<div class="grid md:grid-cols-2 gap-6 items-center">
+<div class="h-72 flex justify-center"><canvas id="costDoughnutChart"></canvas></div>
+<div id="costBreakdownList" class="space-y-2"></div>
+</div>
+</div>
+</section>
+
+<!-- Section 3: 비용 최적화 추천 -->
+<section>
+<h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+<svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+비용 최적화 추천
+</h2>
+<div class="grid md:grid-cols-3 gap-6" id="optimizationCards"></div>
+</section>
+
+<!-- Section 4: 법정 선거비용 한도 -->
+<section>
+<h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+<svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+법정 선거비용 한도
+</h2>
+<div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+<div class="flex items-center gap-4 mb-6">
+<label class="font-semibold text-gray-700">선거 유형</label>
+<select id="electionTypeSelect" class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium" onchange="updateBudgetLimit()">
+</select>
+</div>
+<div id="budgetLimitInfo"></div>
+</div>
+</section>
+
+</div>
+
+<div id="app-footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="js/mock-data.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/chart-helpers.js"></script>
+<script>
+initPage('cost');
+
+let costBarChartInstance = null;
+let costDoughnutChartInstance = null;
+
+// Populate election type dropdown
+const elSelect = document.getElementById('electionTypeSelect');
+ELECTION_TYPES.forEach(e => {
+  if (e.budgetLimit) {
+    const opt = document.createElement('option');
+    opt.value = e.id;
+    opt.textContent = e.name;
+    elSelect.appendChild(opt);
+  }
+});
+// default to basic_head
+elSelect.value = 'basic_head';
+
+function changeVehicles(delta) {
+  const inp = document.getElementById('vehicleCount');
+  let v = parseInt(inp.value) + delta;
+  v = Math.max(1, Math.min(5, v));
+  inp.value = v;
+  calculateCosts();
+}
+
+function calculateCosts() {
+  const vehicles = parseInt(document.getElementById('vehicleCount').value) || 2;
+  const days = parseInt(document.getElementById('campaignDays').value) || 14;
+
+  // Build cost breakdown
+  const dailyItems = ['vehicleRental', 'fuel', 'driver', 'sound', 'assistant', 'parking', 'insurance'];
+  const tbody = document.getElementById('costTableBody');
+  let dailyPerVehicle = 0;
+  let rows = '';
+  const itemTotals = {};
+
+  dailyItems.forEach(key => {
+    const item = COST_TABLE[key];
+    const subtotal = item.daily * vehicles;
+    dailyPerVehicle += item.daily;
+    itemTotals[key] = subtotal * days;
+    rows += `<tr>
+      <td class="px-4"><div class="font-medium">${item.label}</div><div class="text-xs text-gray-400">${item.desc}</div></td>
+      <td class="text-right px-4 text-gray-700">${fmt(item.daily)}원</td>
+      <td class="text-right px-4 text-gray-700">${vehicles}대</td>
+      <td class="text-right px-4 font-semibold">${fmt(subtotal)}원</td>
+    </tr>`;
+  });
+
+  // banner is one-time per vehicle
+  const bannerItem = COST_TABLE.banner;
+  const bannerTotal = bannerItem.once * vehicles;
+  itemTotals['banner'] = bannerTotal;
+  rows += `<tr>
+    <td class="px-4"><div class="font-medium">${bannerItem.label}</div><div class="text-xs text-gray-400">${bannerItem.desc} (1회성)</div></td>
+    <td class="text-right px-4 text-gray-700">${fmt(bannerItem.once)}원</td>
+    <td class="text-right px-4 text-gray-700">${vehicles}대</td>
+    <td class="text-right px-4 font-semibold">${fmt(bannerTotal)}원</td>
+  </tr>`;
+
+  tbody.innerHTML = rows;
+
+  const dailyTotal = dailyPerVehicle * vehicles;
+  const totalCampaign = dailyTotal * days + bannerTotal;
+
+  document.getElementById('dailyTotal').textContent = fmt(dailyTotal) + '원';
+  document.getElementById('totalCampaignCost').textContent = fmtWon(totalCampaign);
+  document.getElementById('totalCampaignCostDesc').textContent = `차량 ${vehicles}대 x ${days}일 운영 + 1회성 비용`;
+  document.getElementById('avgDailyCost').textContent = fmtWon(dailyTotal);
+  document.getElementById('perVehicleCost').textContent = fmtWon(Math.round(totalCampaign / vehicles));
+
+  // Charts
+  updateCostCharts(itemTotals, days, vehicles);
+  updateOptimizationCards(vehicles, days, dailyPerVehicle, totalCampaign);
+  updateBudgetLimit();
+}
+
+function updateCostCharts(itemTotals, days, vehicles) {
+  const labels = [];
+  const data = [];
+  const entries = [];
+
+  Object.keys(COST_TABLE).forEach(key => {
+    const label = COST_TABLE[key].label;
+    const val = itemTotals[key] || 0;
+    labels.push(label);
+    data.push(val);
+    entries.push({ label, val });
+  });
+
+  // Bar chart
+  if (costBarChartInstance) costBarChartInstance.destroy();
+  const barCtx = document.getElementById('costBarChart').getContext('2d');
+  costBarChartInstance = new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '총 비용 (원)',
+        data: data,
+        backgroundColor: ['#2563eb','#3b82f6','#60a5fa','#93c5fd','#06b6d4','#f59e0b','#10b981','#ef4444'],
+        borderRadius: 6,
+        barPercentage: 0.7
+      }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => fmtWon(v) } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Doughnut chart
+  if (costDoughnutChartInstance) costDoughnutChartInstance.destroy();
+  const doughCtx = document.getElementById('costDoughnutChart').getContext('2d');
+  costDoughnutChartInstance = createDoughnutChart(doughCtx, labels, data);
+
+  // Breakdown list
+  const total = data.reduce((a, b) => a + b, 0);
+  const colors = ['#2563eb','#3b82f6','#60a5fa','#93c5fd','#06b6d4','#f59e0b','#10b981','#ef4444'];
+  document.getElementById('costBreakdownList').innerHTML = entries.map((e, i) => {
+    const pct = total > 0 ? ((e.val / total) * 100).toFixed(1) : 0;
+    return `<div class="flex items-center gap-3">
+      <div class="w-3 h-3 rounded-full shrink-0" style="background:${colors[i]}"></div>
+      <span class="text-sm text-gray-700 flex-1">${e.label}</span>
+      <span class="text-sm font-semibold">${fmtWon(e.val)}</span>
+      <span class="text-xs text-gray-400 w-12 text-right">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+function updateOptimizationCards(vehicles, days, dailyPerVehicle, totalCampaign) {
+  const avgVoterPerVehicle = 1200; // estimated daily voter contacts per vehicle
+
+  // Scenario 1: Current
+  const s1Cost = totalCampaign;
+  const s1Reach = vehicles * avgVoterPerVehicle * days;
+
+  // Scenario 2: 1 fewer vehicle + walking
+  const reducedVehicles = Math.max(1, vehicles - 1);
+  const s2DailyCost = dailyPerVehicle * reducedVehicles;
+  const s2Banner = COST_TABLE.banner.once * reducedVehicles;
+  const s2Cost = s2DailyCost * days + s2Banner;
+  const walkingBonus = 400 * days; // walking campaign reaches ~400/day
+  const s2Reach = reducedVehicles * avgVoterPerVehicle * days + walkingBonus;
+
+  // Scenario 3: Peak hours only (60% operation)
+  const s3Mult = 0.6;
+  const s3DailyCost = Math.round(dailyPerVehicle * vehicles * 0.75); // 75% cost for 60% time
+  const s3Banner = COST_TABLE.banner.once * vehicles;
+  const s3Cost = s3DailyCost * days + s3Banner;
+  const s3Reach = Math.round(vehicles * avgVoterPerVehicle * 0.85 * days); // 85% reach (peak efficiency)
+
+  const scenarios = [
+    {
+      title: '현재 설정',
+      desc: `차량 ${vehicles}대 전일 운영`,
+      cost: s1Cost,
+      reach: s1Reach,
+      efficiency: (s1Reach / (s1Cost / 10000)).toFixed(1),
+      color: 'blue',
+      badge: '기본',
+      icon: '🚗'
+    },
+    {
+      title: '차량 축소안',
+      desc: `차량 ${reducedVehicles}대 + 도보유세 병행`,
+      cost: s2Cost,
+      reach: s2Reach,
+      efficiency: (s2Reach / (s2Cost / 10000)).toFixed(1),
+      color: 'emerald',
+      badge: vehicles > 1 ? '비용 절감' : '현재와 동일',
+      icon: '🚶',
+      saving: s1Cost > s2Cost ? Math.round((1 - s2Cost / s1Cost) * 100) : 0
+    },
+    {
+      title: '시간대 최적화안',
+      desc: '피크타임 집중 운영 (08~10, 17~19시)',
+      cost: s3Cost,
+      reach: s3Reach,
+      efficiency: (s3Reach / (s3Cost / 10000)).toFixed(1),
+      color: 'purple',
+      badge: '효율 최고',
+      icon: '⏰',
+      saving: Math.round((1 - s3Cost / s1Cost) * 100)
+    }
+  ];
+
+  // Find best efficiency
+  const maxEff = Math.max(...scenarios.map(s => parseFloat(s.efficiency)));
+
+  document.getElementById('optimizationCards').innerHTML = scenarios.map(s => {
+    const isBest = parseFloat(s.efficiency) === maxEff;
+    return `<div class="bg-white rounded-2xl border-2 ${isBest ? 'border-blue-400 shadow-lg shadow-blue-100' : 'border-gray-200'} p-6 relative card-hover">
+      ${isBest ? '<div class="absolute -top-3 left-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">추천</div>' : ''}
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-3xl">${s.icon}</span>
+        <div>
+          <h3 class="font-bold text-lg">${s.title}</h3>
+          <span class="inline-block text-xs px-2 py-0.5 rounded-full bg-${s.color}-50 text-${s.color}-700 font-medium">${s.badge}</span>
+        </div>
+      </div>
+      <p class="text-sm text-gray-500 mb-4">${s.desc}</p>
+      <div class="space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-500">총 비용</span>
+          <span class="font-bold text-lg">${fmtWon(s.cost)}</span>
+        </div>
+        ${s.saving ? `<div class="flex justify-between items-center">
+          <span class="text-sm text-gray-500">절감률</span>
+          <span class="font-bold text-emerald-600">-${s.saving}%</span>
+        </div>` : ''}
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-500">예상 유권자 접촉</span>
+          <span class="font-bold">${fmt(s.reach)}명</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-500">만원당 접촉 효율</span>
+          <span class="font-bold ${parseFloat(s.efficiency) === maxEff ? 'text-blue-600' : ''}">${s.efficiency}명/만원</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateBudgetLimit() {
+  const typeId = document.getElementById('electionTypeSelect').value;
+  const elType = getElectionType(typeId);
+  if (!elType || !elType.budgetLimit) {
+    document.getElementById('budgetLimitInfo').innerHTML = '<p class="text-gray-500">선거비용 한도가 별도 규정인 선거 유형입니다.</p>';
+    return;
+  }
+
+  const vehicles = parseInt(document.getElementById('vehicleCount').value) || 2;
+  const days = parseInt(document.getElementById('campaignDays').value) || 14;
+  const dailyItems = ['vehicleRental', 'fuel', 'driver', 'sound', 'assistant', 'parking', 'insurance'];
+  let dailyPerVehicle = 0;
+  dailyItems.forEach(key => { dailyPerVehicle += COST_TABLE[key].daily; });
+  const totalCampaign = dailyPerVehicle * vehicles * days + COST_TABLE.banner.once * vehicles;
+
+  const limit = elType.budgetLimit;
+  const pct = Math.min(100, (totalCampaign / limit) * 100);
+  const isWarning = pct >= 80;
+  const isOver = pct >= 100;
+
+  let barColor = 'bg-blue-500';
+  if (isOver) barColor = 'bg-red-500';
+  else if (isWarning) barColor = 'bg-amber-500';
+
+  document.getElementById('budgetLimitInfo').innerHTML = `
+    <div class="grid md:grid-cols-3 gap-4 mb-6">
+      <div class="bg-gray-50 rounded-xl p-4 text-center">
+        <p class="text-sm text-gray-500">선거 유형</p>
+        <p class="text-lg font-bold mt-1">${elType.name}</p>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-4 text-center">
+        <p class="text-sm text-gray-500">법정 한도</p>
+        <p class="text-lg font-bold text-blue-600 mt-1">${fmtWon(limit)}</p>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-4 text-center">
+        <p class="text-sm text-gray-500">차량 비용 비중</p>
+        <p class="text-lg font-bold ${isOver ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-blue-600'} mt-1">${pct.toFixed(1)}%</p>
+      </div>
+    </div>
+    <div class="mb-2 flex justify-between text-sm">
+      <span class="text-gray-600">차량 운영 비용: <strong>${fmtWon(totalCampaign)}</strong></span>
+      <span class="text-gray-600">한도: <strong>${fmtWon(limit)}</strong></span>
+    </div>
+    <div class="w-full h-6 bg-gray-200 rounded-full overflow-hidden relative">
+      <div class="${barColor} h-full rounded-full transition-all duration-500" style="width:${Math.min(100, pct)}%"></div>
+      ${pct < 95 ? `<div class="absolute right-2 top-0 h-full flex items-center text-xs font-bold text-gray-500">${(100 - pct).toFixed(1)}% 여유</div>` : ''}
+    </div>
+    ${isOver ? `<div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+      <svg class="w-6 h-6 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div>
+        <p class="font-bold text-red-800">법정 한도 초과 경고</p>
+        <p class="text-sm text-red-600 mt-1">차량 운영 비용만으로 법정 선거비용 한도의 ${pct.toFixed(1)}%를 사용합니다. 차량 수를 줄이거나 운영 기간을 조정하세요.</p>
+      </div>
+    </div>` : ''}
+    ${isWarning && !isOver ? `<div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+      <svg class="w-6 h-6 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div>
+        <p class="font-bold text-amber-800">주의: 한도의 80% 이상</p>
+        <p class="text-sm text-amber-600 mt-1">차량 운영 비용이 법정 한도의 ${pct.toFixed(1)}%에 달합니다. 다른 선거 비용(인쇄물, 광고 등)을 고려하면 예산 초과 위험이 있습니다.</p>
+      </div>
+    </div>` : ''}
+    <div class="mt-4 text-sm text-gray-500">
+      <p>* 차량 운영 외에도 인쇄물, 광고, 사무실 운영비 등이 법정 한도에 포함됩니다.</p>
+      <p>* 실제 법정 한도는 선거관리위원회 고시를 확인하세요.</p>
+    </div>
+  `;
+}
+
+// Initialize
+calculateCosts();
+</script>
+</body>
+</html>

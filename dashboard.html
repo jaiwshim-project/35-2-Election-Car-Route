@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>캠프 대시보드 — 일렉트맵AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Pretendard Variable','Pretendard','system-ui','sans-serif']}}}}</script>
+<link rel="stylesheet" href="css/custom.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="antialiased bg-gray-50 text-gray-900">
+<div id="test-banner"></div>
+<div id="app-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+  <!-- Top Bar -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">캠프 대시보드</h1>
+      <p class="text-sm text-gray-500 mt-1">선거 전략 현황을 한눈에 확인하세요</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <select id="election-type-select" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500" onchange="onSelectionChange()">
+      </select>
+      <select id="district-select" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500" onchange="onSelectionChange()">
+      </select>
+    </div>
+  </div>
+
+  <!-- Row 1: Metric Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="metric-cards">
+  </div>
+
+  <!-- Row 2: Mini Map + Radar Chart -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Mini Map -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-bold text-gray-800">선거구 지도</h3>
+        <a href="voter-map.html" class="text-xs text-blue-600 font-medium hover:underline">상세 분석 &rarr;</a>
+      </div>
+      <div id="mini-map" style="height:320px;"></div>
+    </div>
+    <!-- Radar Chart -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+      <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-bold text-gray-800">선거구 종합 점수</h3>
+        <span id="total-score-badge" class="text-sm font-bold px-3 py-1 rounded-full"></span>
+      </div>
+      <div class="p-5">
+        <div style="height:280px;" class="flex items-center justify-center">
+          <canvas id="radar-chart"></canvas>
+        </div>
+        <div id="score-bars" class="mt-4 space-y-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Past Elections + Age Distribution -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Past Elections Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+      <div class="px-5 py-4 border-b border-gray-100">
+        <h3 class="font-bold text-gray-800">과거 선거 결과</h3>
+        <p class="text-xs text-gray-500 mt-0.5">최근 선거 투표율 및 당선자 정보</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="text-xs">연도</th>
+              <th class="text-xs">선거</th>
+              <th class="text-xs">선거구</th>
+              <th class="text-xs">투표율</th>
+              <th class="text-xs">당선자</th>
+              <th class="text-xs">정당</th>
+            </tr>
+          </thead>
+          <tbody id="past-elections-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Age Distribution Chart -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+      <div class="px-5 py-4 border-b border-gray-100">
+        <h3 class="font-bold text-gray-800">연령대별 유권자 분포</h3>
+        <p class="text-xs text-gray-500 mt-0.5" id="age-subtitle">선택된 선거구의 연령별 유권자 비율</p>
+      </div>
+      <div class="p-5" style="height:320px;">
+        <canvas id="age-chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 4: Quick Actions -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+    <h3 class="font-bold text-gray-800 mb-4">빠른 액션</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <a href="voter-map.html" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-blue-50 hover:bg-blue-100 transition group">
+        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-xl group-hover:scale-110 transition">&#x1F4CD;</div>
+        <span class="text-xs font-semibold text-blue-700">유권자 분석</span>
+      </a>
+      <a href="route-optimizer.html" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 transition group">
+        <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-xl group-hover:scale-110 transition">&#x1F697;</div>
+        <span class="text-xs font-semibold text-emerald-700">경로 최적화</span>
+      </a>
+      <a href="cost-analysis.html" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-amber-50 hover:bg-amber-100 transition group">
+        <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center text-xl group-hover:scale-110 transition">&#x1F4B0;</div>
+        <span class="text-xs font-semibold text-amber-700">비용 분석</span>
+      </a>
+      <a href="competitor.html" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-purple-50 hover:bg-purple-100 transition group">
+        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-xl group-hover:scale-110 transition">&#x1F3AF;</div>
+        <span class="text-xs font-semibold text-purple-700">경쟁 분석</span>
+      </a>
+      <a href="reports.html" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-rose-50 hover:bg-rose-100 transition group">
+        <div class="w-10 h-10 bg-rose-100 rounded-lg flex items-center justify-center text-xl group-hover:scale-110 transition">&#x1F4CA;</div>
+        <span class="text-xs font-semibold text-rose-700">AI 리포트</span>
+      </a>
+      <a href="simulation.html" class="flex flex-col items-center gap-2 p-4 rounded-xl bg-cyan-50 hover:bg-cyan-100 transition group">
+        <div class="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center text-xl group-hover:scale-110 transition">&#x1F3AE;</div>
+        <span class="text-xs font-semibold text-cyan-700">시뮬레이션</span>
+      </a>
+    </div>
+  </div>
+</main>
+
+<div id="app-footer"></div>
+
+<script src="js/mock-data.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/chart-helpers.js"></script>
+<script src="js/map-engine.js"></script>
+<script>
+initPage('dashboard');
+
+/* ── 상태 ── */
+var miniMap, miniMapHeatLayer, radarChart, ageChart;
+var selectedDistrictIdx = 0;
+
+/* ── 초기화 ── */
+(function init() {
+  // 선거 유형 드롭다운
+  var etSel = document.getElementById('election-type-select');
+  ELECTION_TYPES.forEach(function(et) {
+    var opt = document.createElement('option');
+    opt.value = et.id;
+    opt.textContent = et.icon + ' ' + et.name;
+    etSel.appendChild(opt);
+  });
+  etSel.value = 'basic_head';
+
+  // 선거구 드롭다운
+  var dSel = document.getElementById('district-select');
+  DISTRICTS.forEach(function(d, i) {
+    var opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = d.sigungu + ' ' + d.dong;
+    dSel.appendChild(opt);
+  });
+
+  // 미니 지도
+  miniMap = initMap('mini-map', [37.2636, 127.0286], 12);
+
+  // 과거 선거 테이블
+  renderPastElections();
+
+  // 초기 렌더
+  updateDashboard();
+})();
+
+/* ── 선택 변경 ── */
+function onSelectionChange() {
+  selectedDistrictIdx = parseInt(document.getElementById('district-select').value) || 0;
+  updateDashboard();
+}
+
+/* ── 대시보드 업데이트 ── */
+function updateDashboard() {
+  var dist = DISTRICTS[selectedDistrictIdx];
+  var elType = getElectionType(document.getElementById('election-type-select').value);
+
+  updateMetricCards(dist, elType);
+  updateMiniMap(dist);
+  updateRadarChart(dist);
+  updateAgeChart(dist);
+}
+
+/* ── 메트릭 카드 ── */
+function updateMetricCards(dist, elType) {
+  // 일일 비용 계산
+  var dailyCostPerVehicle = 0;
+  Object.keys(COST_TABLE).forEach(function(key) {
+    if (COST_TABLE[key].daily) dailyCostPerVehicle += COST_TABLE[key].daily;
+  });
+
+  // 추천 차량 대수
+  var vehicleCount;
+  if (dist.voters < 100000) vehicleCount = 1;
+  else if (dist.voters < 200000) vehicleCount = 2;
+  else if (dist.voters < 300000) vehicleCount = 3;
+  else vehicleCount = 4;
+
+  var totalDailyCost = dailyCostPerVehicle * vehicleCount;
+
+  var cards = [
+    {
+      label: '총 유권자수',
+      value: fmt(dist.voters) + '명',
+      sub: '유동인구 ' + fmt(dist.floating_pop) + '명',
+      icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>',
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-600'
+    },
+    {
+      label: '경쟁 후보 수',
+      value: dist.competitors + '명',
+      sub: '지역구: ' + dist.sigungu + ' ' + dist.dong,
+      icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>',
+      iconBg: 'bg-red-100',
+      iconColor: 'text-red-600'
+    },
+    {
+      label: '일일 예상 비용',
+      value: fmtWon(totalDailyCost),
+      sub: '차량 ' + vehicleCount + '대 x ' + fmtWon(dailyCostPerVehicle) + '/대',
+      icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+      iconBg: 'bg-amber-100',
+      iconColor: 'text-amber-600'
+    },
+    {
+      label: '추천 차량 대수',
+      value: vehicleCount + '대',
+      sub: elType ? elType.name + ' 기준' : '',
+      icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h8m-8 5h4m4.5 2.5L19 17l-2 2m4-6a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600'
+    }
+  ];
+
+  document.getElementById('metric-cards').innerHTML = cards.map(function(c) {
+    return '<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 card-hover">' +
+      '<div class="flex items-start justify-between">' +
+      '<div><p class="text-sm text-gray-500 font-medium">' + c.label + '</p>' +
+      '<p class="text-2xl font-bold mt-1 text-gray-900">' + c.value + '</p>' +
+      '<p class="text-xs text-gray-400 mt-1">' + c.sub + '</p></div>' +
+      '<div class="w-11 h-11 ' + c.iconBg + ' ' + c.iconColor + ' rounded-xl flex items-center justify-center shrink-0">' + c.icon + '</div>' +
+      '</div></div>';
+  }).join('');
+}
+
+/* ── 미니 지도 ── */
+function updateMiniMap(dist) {
+  if (miniMapHeatLayer) { miniMap.removeLayer(miniMapHeatLayer); }
+
+  miniMap.setView([dist.lat, dist.lng], 13);
+
+  // 해당 선거구의 거점으로 히트맵
+  var spots = getSpotsForDistrict(dist.dong);
+  if (spots.length === 0) {
+    // 가까운 거점 사용
+    spots = CAMPAIGN_SPOTS.filter(function(s) {
+      var dlat = s.lat - dist.lat;
+      var dlng = s.lng - dist.lng;
+      return Math.sqrt(dlat * dlat + dlng * dlng) < 0.05;
+    });
+  }
+
+  var heatPoints = [];
+  spots.forEach(function(spot) {
+    var intensity = spot.voterReach / 12000;
+    for (var i = 0; i < 8; i++) {
+      var angle = Math.random() * Math.PI * 2;
+      var d = Math.random() * 0.006;
+      heatPoints.push([spot.lat + Math.cos(angle) * d, spot.lng + Math.sin(angle) * d, intensity]);
+    }
+  });
+
+  if (heatPoints.length > 0) {
+    miniMapHeatLayer = addHeatLayer(miniMap, heatPoints, { radius: 18, blur: 14 });
+  }
+
+  // 선거구 중심 마커
+  L.marker([dist.lat, dist.lng]).addTo(miniMap)
+    .bindPopup('<strong>' + dist.sigungu + ' ' + dist.dong + '</strong><br>유권자: ' + fmt(dist.voters) + '명');
+
+  setTimeout(function() { miniMap.invalidateSize(); }, 100);
+}
+
+/* ── 레이더 차트 ── */
+function updateRadarChart(dist) {
+  var labels = ['유권자 밀집도', '접근성', '비용 효율', '커버리지', '경쟁 강도'];
+  var data = [
+    dist.scores.voter_density,
+    dist.scores.accessibility,
+    dist.scores.cost_efficiency,
+    dist.scores.coverage,
+    dist.scores.competition
+  ];
+
+  // 총점 뱃지
+  var badge = document.getElementById('total-score-badge');
+  var grade = getGrade(dist.scores.total);
+  badge.textContent = grade + '등급 (' + dist.scores.total + '점)';
+  badge.className = 'text-sm font-bold px-3 py-1 rounded-full ' + getGradeColor(grade);
+
+  // 차트 업데이트 또는 생성
+  if (radarChart) { radarChart.destroy(); }
+  radarChart = createRadarChart(
+    document.getElementById('radar-chart'),
+    labels,
+    data,
+    { label: dist.dong + ' 점수' }
+  );
+
+  // 점수 바
+  document.getElementById('score-bars').innerHTML =
+    scoreBarHTML('밀집도', dist.scores.voter_density) +
+    scoreBarHTML('접근성', dist.scores.accessibility) +
+    scoreBarHTML('비용효율', dist.scores.cost_efficiency) +
+    scoreBarHTML('커버리지', dist.scores.coverage) +
+    scoreBarHTML('경쟁강도', dist.scores.competition);
+}
+
+/* ── 연령 분포 차트 ── */
+function updateAgeChart(dist) {
+  var labels = ['20대', '30대', '40대', '50대', '60대+'];
+  var pcts = [dist.age_20s_pct, dist.age_30s_pct, dist.age_40s_pct, dist.age_50s_pct, dist.age_60plus_pct];
+  var voterCounts = pcts.map(function(p) { return Math.round(dist.voters * p / 100); });
+
+  document.getElementById('age-subtitle').textContent = dist.sigungu + ' ' + dist.dong + ' 연령별 유권자 비율';
+
+  if (ageChart) { ageChart.destroy(); }
+  ageChart = createBarChart(
+    document.getElementById('age-chart'),
+    labels,
+    [{
+      label: '유권자 수',
+      data: voterCounts,
+      color: ['rgba(37,99,235,0.6)', 'rgba(124,58,237,0.6)', 'rgba(5,150,105,0.6)', 'rgba(217,119,6,0.6)', 'rgba(220,38,38,0.6)'],
+      borderColor: ['#2563eb', '#7c3aed', '#059669', '#d97706', '#dc2626']
+    }]
+  );
+}
+
+/* ── 과거 선거 테이블 ── */
+function renderPastElections() {
+  var partyColors = {
+    '더불어민주당': 'bg-blue-100 text-blue-700',
+    '국민의힘': 'bg-red-100 text-red-700',
+    '무소속': 'bg-gray-100 text-gray-700'
+  };
+
+  document.getElementById('past-elections-body').innerHTML = PAST_ELECTIONS.map(function(e) {
+    var pColor = partyColors[e.winnerParty] || 'bg-gray-100 text-gray-700';
+    return '<tr>' +
+      '<td class="text-sm font-medium">' + e.year + '</td>' +
+      '<td class="text-sm">' + e.type + '</td>' +
+      '<td class="text-sm">' + e.district + '</td>' +
+      '<td class="text-sm"><span class="font-semibold ' + (e.turnout >= 55 ? 'text-blue-600' : 'text-gray-700') + '">' + e.turnout + '%</span></td>' +
+      '<td class="text-sm font-medium">' + e.winner + '</td>' +
+      '<td class="text-sm"><span class="px-2 py-0.5 rounded-full text-xs font-medium ' + pColor + '">' + e.winnerParty + '</span></td>' +
+      '</tr>';
+  }).join('');
+}
+</script>
+</body>
+</html>

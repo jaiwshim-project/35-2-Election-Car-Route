@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>요금제 — 일렉트맵AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Pretendard Variable','Pretendard','system-ui','sans-serif']}}}}</script>
+<link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="antialiased bg-white text-gray-900">
+<div id="test-banner"></div>
+<div id="app-header"></div>
+
+<!-- Hero -->
+<section class="relative py-20 md:py-28 bg-gradient-to-br from-white via-blue-50/30 to-white overflow-hidden">
+<div class="absolute inset-0 opacity-5" style="background-image:url('data:image/svg+xml,<svg width=60 height=60 xmlns=%22http://www.w3.org/2000/svg%22><circle cx=30 cy=30 r=1.5 fill=%23333/%3E</svg>');"></div>
+<div class="max-w-4xl mx-auto px-6 text-center relative">
+<div class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-sm font-medium px-4 py-2 rounded-full mb-6">
+<span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span> 선거 규모에 맞는 맞춤 요금
+</div>
+<h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+합리적인<br><span class="gradient-text">AI 선거 전략</span>
+</h1>
+<p class="mt-6 text-lg md:text-xl text-gray-600 leading-relaxed">
+선거 규모와 예산에 맞는 패키지를 선택하세요.<br class="hidden sm:block">
+모든 패키지에는 14일 무료 체험이 포함됩니다.
+</p>
+</div>
+</section>
+
+<!-- Pricing Cards -->
+<section class="py-16 md:py-20 -mt-8">
+<div class="max-w-6xl mx-auto px-6">
+<div class="grid md:grid-cols-3 gap-6 lg:gap-8">
+
+<!-- 기초 패키지 -->
+<div class="bg-white rounded-2xl border-2 border-gray-200 p-8 flex flex-col card-hover">
+<div>
+<h3 class="text-xl font-bold text-gray-900">기초 패키지</h3>
+<p class="text-sm text-gray-500 mt-1">기초단체장 / 기초의원 대상</p>
+<div class="mt-6 flex items-baseline gap-1">
+<span class="text-5xl font-extrabold text-gray-900">49</span>
+<span class="text-lg text-gray-500 font-medium">만원/월</span>
+</div>
+<p class="mt-2 text-sm text-gray-400">VAT 별도</p>
+</div>
+<ul class="mt-8 space-y-4 flex-1">
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-gray-700">유권자 밀집도 분석</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-gray-700">차량 1~2대 경로 최적화</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-gray-700">비용 분석 기본 리포트</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-gray-700">일정 관리 (기본)</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-gray-700">이메일 고객지원</span>
+</li>
+</ul>
+<a href="dashboard.html" class="mt-8 block text-center bg-gray-100 text-gray-800 font-semibold py-3.5 rounded-xl hover:bg-gray-200 transition text-sm">14일 무료 체험 시작</a>
+</div>
+
+<!-- 광역 패키지 (POPULAR) -->
+<div class="bg-blue-600 rounded-2xl p-8 text-white flex flex-col relative card-hover shadow-xl shadow-blue-600/25 md:-mt-4 md:mb-[-16px]">
+<div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-900 text-xs font-extrabold px-5 py-1.5 rounded-full shadow-lg">
+POPULAR
+</div>
+<div>
+<h3 class="text-xl font-bold">광역 패키지</h3>
+<p class="text-blue-200 text-sm mt-1">광역단체장 / 광역의원 / 교육감 대상</p>
+<div class="mt-6 flex items-baseline gap-1">
+<span class="text-5xl font-extrabold text-white">99</span>
+<span class="text-lg text-blue-200 font-medium">만원/월</span>
+</div>
+<p class="mt-2 text-sm text-blue-300">VAT 별도</p>
+</div>
+<ul class="mt-8 space-y-4 flex-1">
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-300 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-blue-50">기초 패키지 모든 기능</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-300 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-blue-50">차량 5대까지 경로 최적화</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-300 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-blue-50">경쟁 후보 분석</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-300 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-blue-50">유세 시뮬레이션</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-300 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-blue-50">AI 종합 전략 리포트</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-300 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-blue-50">전화 고객지원</span>
+</li>
+</ul>
+<a href="dashboard.html" class="mt-8 block text-center bg-white text-blue-600 font-bold py-3.5 rounded-xl hover:bg-blue-50 transition text-sm">14일 무료 체험 시작</a>
+</div>
+
+<!-- 프리미엄 패키지 -->
+<div class="bg-white rounded-2xl border-2 border-gray-200 p-8 flex flex-col card-hover">
+<div>
+<h3 class="text-xl font-bold text-gray-900">프리미엄 패키지</h3>
+<p class="text-sm text-gray-500 mt-1">국회의원 / 대통령 대상</p>
+<div class="mt-6 flex items-baseline gap-1">
+<span class="text-5xl font-extrabold text-gray-900">199</span>
+<span class="text-lg text-gray-500 font-medium">만원/월</span>
+</div>
+<p class="mt-2 text-sm text-gray-400">VAT 별도</p>
+</div>
+<ul class="mt-8 space-y-4 flex-1">
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-gray-700">광역 패키지 모든 기능</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-gray-700">무제한 차량 경로 최적화</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-gray-700">실시간 GPS 추적 연동</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-gray-700">A/B 전략 시뮬레이션</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-gray-700">전담 컨설턴트 배정</span>
+</li>
+<li class="flex items-start gap-3">
+<svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+<span class="text-gray-700">24시간 긴급 지원</span>
+</li>
+</ul>
+<a href="dashboard.html" class="mt-8 block text-center bg-gray-100 text-gray-800 font-semibold py-3.5 rounded-xl hover:bg-gray-200 transition text-sm">14일 무료 체험 시작</a>
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- Feature Comparison Table -->
+<section class="py-16 md:py-20 bg-gray-50">
+<div class="max-w-5xl mx-auto px-6">
+<h2 class="text-3xl font-bold text-center">기능 상세 비교</h2>
+<p class="mt-4 text-gray-600 text-center">패키지별 제공 기능을 한눈에 비교해 보세요</p>
+
+<div class="mt-12 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full">
+<thead>
+<tr class="bg-gray-50 border-b-2 border-gray-200">
+<th class="text-left py-4 px-6 text-sm font-bold text-gray-900 w-2/5">기능</th>
+<th class="text-center py-4 px-4 text-sm font-bold text-gray-900">기초<br><span class="font-normal text-gray-500">49만원</span></th>
+<th class="text-center py-4 px-4 text-sm font-bold text-blue-600">광역<br><span class="font-normal text-blue-400">99만원</span></th>
+<th class="text-center py-4 px-4 text-sm font-bold text-gray-900">프리미엄<br><span class="font-normal text-gray-500">199만원</span></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-100" id="comparison-table-body">
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+
+<!-- FAQ -->
+<section class="py-16 md:py-20">
+<div class="max-w-3xl mx-auto px-6">
+<h2 class="text-3xl font-bold text-center">자주 묻는 질문</h2>
+<p class="mt-4 text-gray-600 text-center">요금제에 대해 궁금한 점을 확인하세요</p>
+
+<div class="mt-12 space-y-4" id="faq-list">
+</div>
+</div>
+</section>
+
+<!-- Final CTA -->
+<section class="py-20 bg-blue-600 text-white">
+<div class="max-w-3xl mx-auto px-6 text-center">
+<h2 class="text-3xl md:text-4xl font-bold">지금 시작하면<br>14일 무료 체험이 제공됩니다</h2>
+<p class="mt-4 text-blue-100 text-lg">신용카드 없이 바로 시작하세요.<br>체험 기간 중 언제든 취소할 수 있습니다.</p>
+<div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+<a href="dashboard.html" class="bg-white text-blue-600 font-bold px-10 py-4 rounded-xl text-lg hover:shadow-lg transition">무료 체험 시작하기 &rarr;</a>
+<a href="election-types.html" class="border-2 border-white/40 text-white font-semibold px-10 py-4 rounded-xl text-lg hover:bg-white/10 transition">선거 유형 보기</a>
+</div>
+<p class="mt-3 text-sm text-blue-200">로그인 없이 모든 분석 기능을 사용해 보세요</p>
+</div>
+</section>
+
+<div id="app-footer"></div>
+<script src="js/mock-data.js"></script>
+<script src="js/shared.js"></script>
+<script>
+initPage('pricing');
+
+/* ── Feature Comparison Data ── */
+const checkSVG = '<svg class="w-5 h-5 text-blue-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+const dashSVG = '<span class="text-gray-300 text-lg">&mdash;</span>';
+
+const features = [
+  { name: '유권자 밀집도 분석', category: '분석', basic: true, metro: true, premium: true },
+  { name: '읍면동별 히트맵', category: '분석', basic: true, metro: true, premium: true },
+  { name: '연령대별 유권자 분포', category: '분석', basic: true, metro: true, premium: true },
+  { name: '유동인구 패턴 분석', category: '분석', basic: false, metro: true, premium: true },
+  { name: '경쟁 후보 분석', category: '분석', basic: false, metro: true, premium: true },
+  { name: '과거 선거 결과 분석', category: '분석', basic: false, metro: true, premium: true },
+  { name: '차량 경로 최적화', category: '최적화', basic: '1~2대', metro: '5대', premium: '무제한' },
+  { name: '다중 차량 동시 최적화', category: '최적화', basic: false, metro: true, premium: true },
+  { name: '실시간 GPS 추적 연동', category: '최적화', basic: false, metro: false, premium: true },
+  { name: '시간대별 동선 설계', category: '최적화', basic: true, metro: true, premium: true },
+  { name: '비용 분석 리포트', category: '리포트', basic: '기본', metro: '상세', premium: '종합' },
+  { name: 'AI 종합 전략 리포트', category: '리포트', basic: false, metro: true, premium: true },
+  { name: '유세 시뮬레이션', category: '시뮬레이션', basic: false, metro: true, premium: true },
+  { name: 'A/B 전략 시뮬레이션', category: '시뮬레이션', basic: false, metro: false, premium: true },
+  { name: '일정 관리', category: '관리', basic: '기본', metro: '고급', premium: '고급' },
+  { name: '데이터 내보내기 (PDF/Excel)', category: '관리', basic: true, metro: true, premium: true },
+  { name: '전담 컨설턴트', category: '지원', basic: false, metro: false, premium: true },
+  { name: '고객 지원', category: '지원', basic: '이메일', metro: '전화', premium: '24시간' }
+];
+
+let currentCategory = '';
+const tbody = document.getElementById('comparison-table-body');
+
+features.forEach(f => {
+  let rows = '';
+  if (f.category !== currentCategory) {
+    currentCategory = f.category;
+    rows += `<tr><td colspan="4" class="py-3 px-6 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">${f.category}</td></tr>`;
+  }
+
+  function renderCell(val) {
+    if (val === true) return checkSVG;
+    if (val === false) return dashSVG;
+    return `<span class="text-sm font-medium text-gray-700">${val}</span>`;
+  }
+
+  rows += `<tr class="hover:bg-gray-50 transition-colors">
+    <td class="py-3.5 px-6 text-sm text-gray-700">${f.name}</td>
+    <td class="py-3.5 px-4 text-center">${renderCell(f.basic)}</td>
+    <td class="py-3.5 px-4 text-center bg-blue-50/30">${renderCell(f.metro)}</td>
+    <td class="py-3.5 px-4 text-center">${renderCell(f.premium)}</td>
+  </tr>`;
+
+  tbody.innerHTML += rows;
+});
+
+/* ── FAQ ── */
+const faqs = [
+  {
+    q: '무료 체험은 어떻게 하나요?',
+    a: '회원가입 후 원하는 패키지를 선택하면 14일 동안 모든 기능을 무료로 사용할 수 있습니다. 신용카드 등록 없이 바로 시작할 수 있으며, 체험 기간이 종료되면 자동으로 서비스가 일시 중지됩니다. 체험 기간 중 결제 정보를 등록하시면 서비스가 끊김 없이 이어집니다.'
+  },
+  {
+    q: '선거 기간 중에 패키지를 변경할 수 있나요?',
+    a: '네, 언제든지 상위 패키지로 업그레이드할 수 있습니다. 업그레이드 시 이미 납부한 금액은 일할 계산하여 차감됩니다. 다운그레이드는 현재 결제 주기가 끝난 후 적용됩니다. 선거 기간의 긴급성을 고려하여 업그레이드는 즉시 반영됩니다.'
+  },
+  {
+    q: '여러 선거구를 동시에 분석할 수 있나요?',
+    a: '기초 패키지는 1개 선거구, 광역 패키지는 최대 3개 선거구, 프리미엄 패키지는 무제한 선거구를 동시에 분석할 수 있습니다. 각 선거구별로 독립적인 대시보드가 제공되며, 통합 리포트에서 전체 현황을 한눈에 확인할 수 있습니다.'
+  },
+  {
+    q: '데이터 보안은 어떻게 되나요?',
+    a: '모든 데이터는 AES-256 암호화를 적용하여 저장되며, SSL/TLS를 통해 전송됩니다. 선거 캠프의 전략 데이터는 완전히 격리된 환경에서 처리되며, 서비스 종료 후 30일 이내에 모든 데이터를 안전하게 삭제합니다. 국내 데이터센터에서 운영되며, 개인정보보호법을 준수합니다.'
+  },
+  {
+    q: '환불 정책은 어떻게 되나요?',
+    a: '결제일로부터 7일 이내에는 전액 환불이 가능합니다. 7일 이후에는 잔여 기간에 대한 일할 환불을 제공합니다. 무료 체험 기간 중에는 별도의 비용이 발생하지 않으므로 안심하고 서비스를 테스트해 보실 수 있습니다. 환불 요청은 고객지원 이메일 또는 전화로 접수하시면 됩니다.'
+  }
+];
+
+document.getElementById('faq-list').innerHTML = faqs.map((faq, i) => `
+<div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+  <button onclick="toggleFaq(${i})" class="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition" id="faq-btn-${i}">
+    <span class="font-semibold text-gray-900 pr-4">${faq.q}</span>
+    <svg id="faq-arrow-${i}" class="w-5 h-5 text-gray-400 shrink-0 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+  </button>
+  <div id="faq-content-${i}" class="hidden">
+    <div class="px-6 pb-6 pt-0 text-gray-600 leading-relaxed border-t border-gray-100 pt-4 mx-6 mb-2">${faq.a}</div>
+  </div>
+</div>
+`).join('');
+
+function toggleFaq(idx) {
+  const content = document.getElementById('faq-content-' + idx);
+  const arrow = document.getElementById('faq-arrow-' + idx);
+  if (content.classList.contains('hidden')) {
+    content.classList.remove('hidden');
+    arrow.style.transform = 'rotate(180deg)';
+  } else {
+    content.classList.add('hidden');
+    arrow.style.transform = 'rotate(0deg)';
+  }
+}
+</script>
+</body>
+</html>

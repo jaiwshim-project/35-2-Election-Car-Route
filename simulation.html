@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>유세 시뮬레이션 — 일렉트맵AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Pretendard Variable','Pretendard','system-ui','sans-serif']}}}}</script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="antialiased bg-white text-gray-900">
+<div id="test-banner"></div>
+<div id="app-header"></div>
+
+<!-- Page Header -->
+<section class="bg-gradient-to-br from-cyan-50 via-white to-white py-12 border-b border-gray-100">
+<div class="max-w-7xl mx-auto px-6">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center text-2xl">🎮</div>
+<div>
+<h1 class="text-3xl font-bold">유세 시뮬레이션</h1>
+<p class="text-gray-500 mt-1">전략별 유세 효과를 미리 시뮬레이션합니다</p>
+</div>
+</div>
+</div>
+</section>
+
+<div class="max-w-7xl mx-auto px-6 py-10 space-y-10">
+
+<!-- Setup Panel -->
+<div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+<h2 class="text-xl font-bold mb-6">시뮬레이션 설정</h2>
+<div class="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">선거구</label>
+<select id="simDistrict" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
+</select>
+</div>
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">시작일</label>
+<input type="date" id="simStart" value="2026-05-20" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
+</div>
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">종료일</label>
+<input type="date" id="simEnd" value="2026-06-02" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
+</div>
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">예산 (만원)</label>
+<input type="number" id="simBudget" value="5000" min="100" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
+</div>
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">차량 수</label>
+<input type="number" id="simVehicles" value="2" min="1" max="5" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
+</div>
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">전략</label>
+<select id="simStrategy" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">
+<option value="aggressive">공격적</option>
+<option value="balanced" selected>균형적</option>
+<option value="defensive">방어적</option>
+</select>
+</div>
+</div>
+<div class="mt-6 flex justify-end">
+<button onclick="runSimulation()" class="flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+시뮬레이션 실행
+</button>
+</div>
+</div>
+
+<!-- Results -->
+<div id="simResults" class="hidden space-y-10">
+
+<!-- Map and Charts row -->
+<div class="grid lg:grid-cols-2 gap-6">
+<!-- Mini Map -->
+<div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+<div class="p-4 border-b border-gray-100">
+<h3 class="font-bold flex items-center gap-2">
+<svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+유세 커버리지 확장
+</h3>
+<div class="flex items-center gap-3 mt-2">
+<input type="range" id="daySlider" min="1" max="14" value="1" class="flex-1" oninput="updateMapDay(this.value)">
+<span class="text-sm font-semibold text-blue-600 min-w-[60px] text-right" id="dayLabel">1일차</span>
+</div>
+</div>
+<div id="simMap" style="height:380px;"></div>
+</div>
+
+<!-- Charts stack -->
+<div class="space-y-6">
+<div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+<h3 class="font-bold mb-4">누적 유권자 접촉률 (%)</h3>
+<div class="h-48"><canvas id="reachChart"></canvas></div>
+</div>
+<div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+<h3 class="font-bold mb-4">누적 비용 소진 (만원)</h3>
+<div class="h-48"><canvas id="costChart"></canvas></div>
+</div>
+</div>
+</div>
+
+<!-- Summary stats -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="simSummary"></div>
+
+<!-- A/B Comparison -->
+<div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+<h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+<svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+A/B 전략 비교
+</h3>
+<div class="grid md:grid-cols-2 gap-4 mb-6">
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">전략 A</label>
+<select id="compareA" class="w-full border border-gray-300 rounded-lg px-4 py-2.5" onchange="runComparison()">
+<option value="aggressive">공격적</option>
+<option value="balanced" selected>균형적</option>
+<option value="defensive">방어적</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">전략 B</label>
+<select id="compareB" class="w-full border border-gray-300 rounded-lg px-4 py-2.5" onchange="runComparison()">
+<option value="aggressive" selected>공격적</option>
+<option value="balanced">균형적</option>
+<option value="defensive">방어적</option>
+</select>
+</div>
+</div>
+<div class="grid md:grid-cols-2 gap-6">
+<div class="h-72"><canvas id="compareChart"></canvas></div>
+<div>
+<h4 class="font-semibold text-gray-700 mb-4">비교 결과</h4>
+<table class="data-table" id="compareTable">
+<thead><tr><th>항목</th><th class="text-right">전략 A</th><th class="text-right">전략 B</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+</div>
+
+</div>
+
+</div>
+
+<div id="app-footer"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="js/mock-data.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/chart-helpers.js"></script>
+<script src="js/map-engine.js"></script>
+<script>
+initPage('simulation');
+
+// Populate district dropdown
+const distSelect = document.getElementById('simDistrict');
+DISTRICTS.forEach(d => {
+  const opt = document.createElement('option');
+  opt.value = d.code;
+  opt.textContent = `${d.sigungu} ${d.dong}`;
+  distSelect.appendChild(opt);
+});
+
+let simMap = null;
+let coverageLayers = [];
+let reachChartInstance = null;
+let costChartInstance = null;
+let compareChartInstance = null;
+let currentSimData = null;
+
+const STRATEGY_CONFIG = {
+  aggressive: { name: '공격적', reachMult: 1.3, costMult: 1.2, color: '#dc2626', desc: '모든 차량 매일 풀가동' },
+  balanced: { name: '균형적', reachMult: 1.0, costMult: 1.0, color: '#2563eb', desc: '평일 풀가동 + 주말 절반' },
+  defensive: { name: '방어적', reachMult: 0.7, costMult: 0.8, color: '#059669', desc: '핵심 지역만 집중 운영' }
+};
+
+function getDaysBetween(start, end) {
+  return Math.ceil((end - start) / 86400000) + 1;
+}
+
+function generateSimData(distCode, startDate, endDate, budget, vehicles, strategyKey) {
+  const district = findDistrict(distCode);
+  if (!district) return null;
+
+  const spots = getSpotsForDistrict(district.dong);
+  const strategy = STRATEGY_CONFIG[strategyKey];
+  const totalDays = getDaysBetween(startDate, endDate);
+  const budgetWon = budget * 10000;
+
+  // Base daily metrics
+  const spotsPerDay = Math.min(spots.length, 4 * vehicles);
+  const avgVoterPerSpot = spots.length > 0 ? spots.reduce((a, s) => a + s.voterReach, 0) / spots.length : 3000;
+  const dailyVoterReach = Math.round(vehicles * spotsPerDay * avgVoterPerSpot * 0.15 * strategy.reachMult);
+
+  // Daily cost
+  const dailyItems = ['vehicleRental', 'fuel', 'driver', 'sound', 'assistant', 'parking', 'insurance'];
+  let baseDailyCost = 0;
+  dailyItems.forEach(k => { baseDailyCost += COST_TABLE[k].daily; });
+  const dailyCost = Math.round(baseDailyCost * vehicles * strategy.costMult);
+  const bannerCost = COST_TABLE.banner.once * vehicles;
+
+  // Generate daily data
+  const days = [];
+  let cumReach = 0;
+  let cumCost = bannerCost;
+  const totalVoters = district.voters;
+
+  for (let d = 0; d < totalDays; d++) {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + d);
+    const dayOfWeek = date.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+    // Weekend adjustments
+    let dayReach = dailyVoterReach;
+    let dayCost = dailyCost;
+
+    if (isWeekend) {
+      if (strategyKey === 'aggressive') {
+        dayReach = Math.round(dailyVoterReach * 1.1); // weekends can reach more in residential
+        dayCost = dailyCost; // full cost
+      } else if (strategyKey === 'balanced') {
+        dayReach = Math.round(dailyVoterReach * 0.5);
+        dayCost = Math.round(dailyCost * 0.5);
+      } else {
+        dayReach = Math.round(dailyVoterReach * 0.3);
+        dayCost = Math.round(dailyCost * 0.3);
+      }
+    }
+
+    // Diminishing returns: as coverage increases, new contacts decrease
+    const coverageFactor = Math.max(0.3, 1 - (cumReach / totalVoters) * 0.5);
+    dayReach = Math.round(dayReach * coverageFactor);
+
+    // Check budget
+    if (cumCost + dayCost > budgetWon) {
+      dayCost = Math.max(0, budgetWon - cumCost);
+      dayReach = Math.round(dayReach * (dayCost / dailyCost));
+    }
+
+    cumReach += dayReach;
+    cumCost += dayCost;
+
+    const reachPct = Math.min(100, (cumReach / totalVoters) * 100);
+
+    days.push({
+      day: d + 1,
+      date: date,
+      dayReach,
+      dayCost,
+      cumReach,
+      cumCost,
+      reachPct: parseFloat(reachPct.toFixed(1)),
+      cumCostMan: Math.round(cumCost / 10000)
+    });
+  }
+
+  return {
+    district,
+    spots,
+    strategy,
+    strategyKey,
+    totalDays,
+    budget: budgetWon,
+    vehicles,
+    days,
+    finalReach: days[days.length - 1].reachPct,
+    finalCost: days[days.length - 1].cumCost,
+    efficiency: (days[days.length - 1].cumReach / (days[days.length - 1].cumCost / 10000)).toFixed(1),
+    remainingBudget: Math.max(0, budgetWon - days[days.length - 1].cumCost)
+  };
+}
+
+function runSimulation() {
+  const distCode = document.getElementById('simDistrict').value;
+  const startDate = new Date(document.getElementById('simStart').value);
+  const endDate = new Date(document.getElementById('simEnd').value);
+  const budget = parseInt(document.getElementById('simBudget').value) || 5000;
+  const vehicles = parseInt(document.getElementById('simVehicles').value) || 2;
+  const strategy = document.getElementById('simStrategy').value;
+
+  if (endDate <= startDate) {
+    alert('종료일은 시작일 이후여야 합니다.');
+    return;
+  }
+
+  currentSimData = generateSimData(distCode, startDate, endDate, budget, vehicles, strategy);
+  if (!currentSimData) {
+    alert('선거구를 선택하세요.');
+    return;
+  }
+
+  document.getElementById('simResults').classList.remove('hidden');
+
+  // Update day slider
+  const slider = document.getElementById('daySlider');
+  slider.max = currentSimData.totalDays;
+  slider.value = currentSimData.totalDays;
+
+  // Init map
+  if (!simMap) {
+    simMap = initMap('simMap', [currentSimData.district.lat, currentSimData.district.lng], 13);
+  } else {
+    simMap.setView([currentSimData.district.lat, currentSimData.district.lng], 13);
+  }
+
+  updateMapDay(currentSimData.totalDays);
+  renderCharts();
+  renderSummary();
+  runComparison();
+
+  document.getElementById('simResults').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateMapDay(dayNum) {
+  if (!currentSimData || !simMap) return;
+
+  document.getElementById('dayLabel').textContent = `${dayNum}일차`;
+
+  // Clear existing coverage layers
+  coverageLayers.forEach(l => simMap.removeLayer(l));
+  coverageLayers = [];
+
+  const data = currentSimData;
+  const spots = data.spots;
+  const maxDay = parseInt(dayNum);
+
+  // Show expanding circles based on day progression
+  const spotsToShow = spots.slice(0, Math.min(spots.length, Math.ceil(maxDay * spots.length / data.totalDays)));
+
+  spotsToShow.forEach((spot, i) => {
+    const dayAppeared = Math.ceil((i + 1) * data.totalDays / spots.length);
+    const daysSinceAppeared = maxDay - dayAppeared + 1;
+    if (daysSinceAppeared <= 0) return;
+
+    const progress = Math.min(1, daysSinceAppeared / (data.totalDays * 0.5));
+    const radius = 200 + progress * 600;
+    const opacity = 0.1 + progress * 0.15;
+
+    const strategyColor = data.strategy.color;
+
+    const circle = L.circle([spot.lat, spot.lng], {
+      radius: radius,
+      color: strategyColor,
+      fillColor: strategyColor,
+      fillOpacity: opacity,
+      weight: 1,
+      opacity: 0.4
+    }).addTo(simMap);
+    coverageLayers.push(circle);
+
+    // Add spot marker
+    const marker = L.circleMarker([spot.lat, spot.lng], {
+      radius: 5,
+      color: strategyColor,
+      fillColor: strategyColor,
+      fillOpacity: 0.8,
+      weight: 2
+    }).addTo(simMap).bindPopup(`<strong>${spot.name}</strong><br>유권자 접촉: ${fmt(spot.voterReach)}명<br>피크타임: ${spot.peakHour}`);
+    coverageLayers.push(marker);
+  });
+}
+
+function renderCharts() {
+  const data = currentSimData;
+  const labels = data.days.map(d => d.day + '일');
+
+  // Reach chart
+  if (reachChartInstance) reachChartInstance.destroy();
+  const reachCtx = document.getElementById('reachChart').getContext('2d');
+  reachChartInstance = createLineChart(reachCtx, labels,
+    [{ label: '유권자 접촉률 (%)', data: data.days.map(d => d.reachPct), fill: true, borderColor: data.strategy.color, bgColor: data.strategy.color + '20' }],
+    { beginAtZero: true }
+  );
+
+  // Cost chart
+  if (costChartInstance) costChartInstance.destroy();
+  const costCtx = document.getElementById('costChart').getContext('2d');
+  costChartInstance = new Chart(costCtx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: '누적 비용 (만원)',
+          data: data.days.map(d => d.cumCostMan),
+          borderColor: data.strategy.color,
+          backgroundColor: data.strategy.color + '20',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 2
+        },
+        {
+          label: '예산 한도',
+          data: data.days.map(() => data.budget / 10000),
+          borderColor: '#ef4444',
+          borderWidth: 2,
+          borderDash: [6, 4],
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => v + '만원' } }
+      },
+      plugins: { legend: { position: 'top', labels: { font: { size: 11 } } } }
+    }
+  });
+}
+
+function renderSummary() {
+  const d = currentSimData;
+  const lastDay = d.days[d.days.length - 1];
+
+  document.getElementById('simSummary').innerHTML = [
+    { label: '최종 접촉률', value: lastDay.reachPct + '%', color: 'blue', sub: `${fmt(lastDay.cumReach)}명 / ${fmt(d.district.voters)}명` },
+    { label: '총 소진 비용', value: fmtWon(lastDay.cumCost), color: 'amber', sub: `예산 대비 ${((lastDay.cumCost / d.budget) * 100).toFixed(1)}%` },
+    { label: '비용 대비 효율', value: d.efficiency + '명/만원', color: 'emerald', sub: '만원당 유권자 접촉 수' },
+    { label: '잔여 예산', value: fmtWon(d.remainingBudget), color: 'purple', sub: d.remainingBudget > 0 ? '추가 운영 가능' : '예산 소진' }
+  ].map(s => `<div class="bg-${s.color}-50 rounded-xl p-5 text-center">
+    <p class="text-sm text-gray-500">${s.label}</p>
+    <p class="text-2xl font-bold text-${s.color}-600 mt-1">${s.value}</p>
+    <p class="text-xs text-gray-400 mt-1">${s.sub}</p>
+  </div>`).join('');
+}
+
+function runComparison() {
+  if (!currentSimData) return;
+
+  const stratA = document.getElementById('compareA').value;
+  const stratB = document.getElementById('compareB').value;
+
+  const distCode = document.getElementById('simDistrict').value;
+  const startDate = new Date(document.getElementById('simStart').value);
+  const endDate = new Date(document.getElementById('simEnd').value);
+  const budget = parseInt(document.getElementById('simBudget').value) || 5000;
+  const vehicles = parseInt(document.getElementById('simVehicles').value) || 2;
+
+  const dataA = generateSimData(distCode, startDate, endDate, budget, vehicles, stratA);
+  const dataB = generateSimData(distCode, startDate, endDate, budget, vehicles, stratB);
+
+  if (!dataA || !dataB) return;
+
+  const labels = dataA.days.map(d => d.day + '일');
+
+  // Comparison chart
+  if (compareChartInstance) compareChartInstance.destroy();
+  const compareCtx = document.getElementById('compareChart').getContext('2d');
+  compareChartInstance = createLineChart(compareCtx, labels, [
+    { label: STRATEGY_CONFIG[stratA].name + ' - 접촉률(%)', data: dataA.days.map(d => d.reachPct), borderColor: STRATEGY_CONFIG[stratA].color, bgColor: STRATEGY_CONFIG[stratA].color + '15', fill: true },
+    { label: STRATEGY_CONFIG[stratB].name + ' - 접촉률(%)', data: dataB.days.map(d => d.reachPct), borderColor: STRATEGY_CONFIG[stratB].color, bgColor: STRATEGY_CONFIG[stratB].color + '15', fill: true }
+  ]);
+
+  // Comparison table
+  const lastA = dataA.days[dataA.days.length - 1];
+  const lastB = dataB.days[dataB.days.length - 1];
+
+  const rows = [
+    { label: '최종 접촉률', a: lastA.reachPct + '%', b: lastB.reachPct + '%', better: lastA.reachPct >= lastB.reachPct ? 'a' : 'b' },
+    { label: '총 비용', a: fmtWon(lastA.cumCost), b: fmtWon(lastB.cumCost), better: lastA.cumCost <= lastB.cumCost ? 'a' : 'b' },
+    { label: '비용 대비 효율', a: dataA.efficiency + '명/만원', b: dataB.efficiency + '명/만원', better: parseFloat(dataA.efficiency) >= parseFloat(dataB.efficiency) ? 'a' : 'b' },
+    { label: '잔여 예산', a: fmtWon(dataA.remainingBudget), b: fmtWon(dataB.remainingBudget), better: dataA.remainingBudget >= dataB.remainingBudget ? 'a' : 'b' }
+  ];
+
+  document.querySelector('#compareTable tbody').innerHTML = rows.map(r => `<tr>
+    <td class="font-medium">${r.label}</td>
+    <td class="text-right ${r.better === 'a' ? 'text-blue-600 font-bold' : ''}">${r.a} ${r.better === 'a' ? '<span class="text-xs text-blue-400 ml-1">*</span>' : ''}</td>
+    <td class="text-right ${r.better === 'b' ? 'text-blue-600 font-bold' : ''}">${r.b} ${r.better === 'b' ? '<span class="text-xs text-blue-400 ml-1">*</span>' : ''}</td>
+  </tr>`).join('') + '<tr><td colspan="3" class="text-xs text-gray-400 pt-2">* 해당 항목에서 우세한 전략</td></tr>';
+}
+</script>
+</body>
+</html>

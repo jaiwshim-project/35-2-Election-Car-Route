@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>유세 일정 관리 — 일렉트맵AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Pretendard Variable','Pretendard','system-ui','sans-serif']}}}}</script>
+<link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="antialiased bg-white text-gray-900">
+<div id="test-banner"></div>
+<div id="app-header"></div>
+
+<!-- Page Header -->
+<section class="bg-gradient-to-br from-cyan-50 via-white to-white py-12 border-b border-gray-100">
+<div class="max-w-7xl mx-auto px-6">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center text-2xl">📅</div>
+<div>
+<h1 class="text-3xl font-bold">유세 일정 관리</h1>
+<p class="text-gray-500 mt-1">캠페인 유세 일정을 계획하고 관리합니다</p>
+</div>
+</div>
+</div>
+</section>
+
+<div class="max-w-7xl mx-auto px-6 py-8">
+
+<!-- Top Controls -->
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+<div class="flex items-center gap-2">
+<button id="btnMonthly" onclick="setView('monthly')" class="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white transition">월간</button>
+<button id="btnWeekly" onclick="setView('weekly')" class="px-4 py-2 rounded-lg text-sm font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition">주간</button>
+</div>
+<div class="flex items-center gap-3">
+<button onclick="navigate(-1)" class="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200 transition">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+</button>
+<span id="navLabel" class="text-lg font-bold min-w-[160px] text-center"></span>
+<button onclick="navigate(1)" class="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200 transition">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+</button>
+<button onclick="goToday()" class="px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition">오늘</button>
+</div>
+<button onclick="generateAISchedule()" class="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:shadow-lg transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+AI 일정 추천
+</button>
+</div>
+
+<!-- Calendar Container -->
+<div id="calendarContainer" class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"></div>
+
+</div>
+
+<!-- Event Modal -->
+<div id="eventModal" class="fixed inset-0 z-50 hidden">
+<div class="absolute inset-0 bg-black/50" onclick="closeModal()"></div>
+<div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl overflow-y-auto">
+<div class="p-6">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-xl font-bold" id="modalTitle">일정 추가</h3>
+<button onclick="closeModal()" class="p-2 hover:bg-gray-100 rounded-lg transition">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+</button>
+</div>
+<form id="eventForm" class="space-y-4">
+<input type="hidden" id="eventId">
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">날짜</label>
+<input type="date" id="eventDate" class="w-full border border-gray-300 rounded-lg px-4 py-2.5" required>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">시작 시간</label>
+<input type="time" id="eventStart" class="w-full border border-gray-300 rounded-lg px-4 py-2.5" required>
+</div>
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">종료 시간</label>
+<input type="time" id="eventEnd" class="w-full border border-gray-300 rounded-lg px-4 py-2.5" required>
+</div>
+</div>
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">유세 거점</label>
+<select id="eventSpot" class="w-full border border-gray-300 rounded-lg px-4 py-2.5">
+<option value="">선택하세요</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">차량 배정</label>
+<select id="eventVehicle" class="w-full border border-gray-300 rounded-lg px-4 py-2.5">
+<option value="1">1호차</option>
+<option value="2">2호차</option>
+<option value="3">3호차</option>
+<option value="4">4호차</option>
+<option value="5">5호차</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">메모</label>
+<textarea id="eventNotes" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 h-24 resize-none" placeholder="메모를 입력하세요..."></textarea>
+</div>
+<div class="flex gap-3 pt-4">
+<button type="submit" class="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition">저장</button>
+<button type="button" id="btnDelete" onclick="deleteEvent()" class="px-6 bg-red-50 text-red-600 font-semibold py-3 rounded-xl hover:bg-red-100 transition hidden">삭제</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+
+<!-- AI Recommendation Notification -->
+<div id="aiToast" class="fixed bottom-6 right-6 z-40 hidden">
+<div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-w-sm animate-fade-in-up">
+<div class="flex items-start gap-3">
+<div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
+<svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+</div>
+<div>
+<p class="font-bold text-gray-900">AI 일정 추천 완료</p>
+<p class="text-sm text-gray-500 mt-1" id="aiToastMsg">월~금 최적 유세 일정이 생성되었습니다.</p>
+<button onclick="hideToast()" class="mt-3 text-sm text-blue-600 font-semibold hover:underline">확인</button>
+</div>
+</div>
+</div>
+</div>
+
+<div id="app-footer"></div>
+<script src="js/mock-data.js"></script>
+<script src="js/shared.js"></script>
+<script>
+initPage('schedule');
+
+// State
+let currentView = 'monthly';
+let viewDate = new Date(2026, 4, 1); // May 2026
+const today = new Date();
+const STORAGE_KEY = 'electmap_schedule_events';
+const vehicleColors = ['bg-blue-100 text-blue-700', 'bg-emerald-100 text-emerald-700', 'bg-amber-100 text-amber-700', 'bg-purple-100 text-purple-700', 'bg-rose-100 text-rose-700'];
+const vehicleBorderColors = ['border-l-blue-500', 'border-l-emerald-500', 'border-l-amber-500', 'border-l-purple-500', 'border-l-rose-500'];
+
+// Populate spot dropdown
+const spotSelect = document.getElementById('eventSpot');
+CAMPAIGN_SPOTS.forEach(s => {
+  const opt = document.createElement('option');
+  opt.value = s.id;
+  opt.textContent = `${s.name} (${s.district})`;
+  spotSelect.appendChild(opt);
+});
+
+// Event storage
+function loadEvents() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch { return []; }
+}
+
+function saveEvents(events) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+}
+
+function getEventsForDate(dateStr) {
+  return loadEvents().filter(e => e.date === dateStr);
+}
+
+// Seed sample events if empty
+function seedSampleEvents() {
+  const events = loadEvents();
+  if (events.length > 0) return;
+
+  // Generate sample events for the current week
+  const samples = [];
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - today.getDay() + 1);
+
+  const sampleSchedule = [
+    { start: '08:00', end: '10:00', spotId: 1, vehicle: 1, notes: '출근 시간대 역세권 유세' },
+    { start: '10:00', end: '12:00', spotId: 4, vehicle: 1, notes: '재래시장 유세' },
+    { start: '14:00', end: '16:00', spotId: 13, vehicle: 2, notes: '상가 지역 유세' },
+    { start: '17:00', end: '19:00', spotId: 7, vehicle: 1, notes: '퇴근 시간 아파트단지' },
+  ];
+
+  for (let d = 0; d < 5; d++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + d);
+    const dateStr = formatDate(date);
+
+    sampleSchedule.forEach((s, i) => {
+      const spot = CAMPAIGN_SPOTS.find(sp => sp.id === s.spotId);
+      samples.push({
+        id: Date.now() + d * 100 + i,
+        date: dateStr,
+        start: s.start,
+        end: s.end,
+        spotId: s.spotId,
+        spotName: spot ? spot.name : '',
+        vehicle: s.vehicle,
+        notes: s.notes
+      });
+    });
+  }
+
+  saveEvents(samples);
+}
+
+function formatDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function isSameDay(d1, d2) {
+  return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+}
+
+// Navigation
+function setView(v) {
+  currentView = v;
+  document.getElementById('btnMonthly').className = v === 'monthly' ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white transition' : 'px-4 py-2 rounded-lg text-sm font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition';
+  document.getElementById('btnWeekly').className = v === 'weekly' ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white transition' : 'px-4 py-2 rounded-lg text-sm font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition';
+  renderCalendar();
+}
+
+function navigate(dir) {
+  if (currentView === 'monthly') {
+    viewDate.setMonth(viewDate.getMonth() + dir);
+  } else {
+    viewDate.setDate(viewDate.getDate() + dir * 7);
+  }
+  renderCalendar();
+}
+
+function goToday() {
+  viewDate = new Date();
+  renderCalendar();
+}
+
+// Render
+function renderCalendar() {
+  const container = document.getElementById('calendarContainer');
+  if (currentView === 'monthly') {
+    renderMonthly(container);
+  } else {
+    renderWeekly(container);
+  }
+}
+
+function renderMonthly(container) {
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  document.getElementById('navLabel').textContent = `${year}년 ${month + 1}월`;
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startOffset = (firstDay.getDay() + 6) % 7; // Monday = 0
+
+  const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+
+  let html = '<div class="p-4">';
+  html += '<div class="calendar-grid mb-1">';
+  dayNames.forEach((d, i) => {
+    html += `<div class="text-center text-sm font-semibold py-2 ${i >= 5 ? 'text-red-400' : 'text-gray-500'}">${d}</div>`;
+  });
+  html += '</div>';
+
+  html += '<div class="calendar-grid">';
+
+  // Empty cells before first day
+  for (let i = 0; i < startOffset; i++) {
+    html += '<div class="calendar-cell bg-gray-50 opacity-40"></div>';
+  }
+
+  // Day cells
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const cellDate = new Date(year, month, d);
+    const dateStr = formatDate(cellDate);
+    const isToday = isSameDay(cellDate, today);
+    const dayOfWeek = (startOffset + d - 1) % 7;
+    const isWeekend = dayOfWeek >= 5;
+    const events = getEventsForDate(dateStr);
+
+    html += `<div class="calendar-cell ${isToday ? 'today' : ''} cursor-pointer hover:bg-blue-50 transition" onclick="openModal('${dateStr}')">`;
+    html += `<div class="text-sm font-semibold ${isToday ? 'text-blue-600' : isWeekend ? 'text-red-400' : 'text-gray-700'}">${d}</div>`;
+
+    events.slice(0, 3).forEach(ev => {
+      const vIdx = (ev.vehicle || 1) - 1;
+      html += `<div class="calendar-event ${vehicleColors[vIdx]} truncate cursor-pointer" onclick="event.stopPropagation();editEvent(${ev.id})" title="${ev.start}~${ev.end} ${ev.spotName}">${ev.start.slice(0,5)} ${ev.spotName}</div>`;
+    });
+    if (events.length > 3) {
+      html += `<div class="text-xs text-gray-400 mt-1">+${events.length - 3}건 더</div>`;
+    }
+
+    html += '</div>';
+  }
+
+  // Fill remaining cells
+  const totalCells = startOffset + lastDay.getDate();
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let i = 0; i < remaining; i++) {
+    html += '<div class="calendar-cell bg-gray-50 opacity-40"></div>';
+  }
+
+  html += '</div></div>';
+  container.innerHTML = html;
+}
+
+function renderWeekly(container) {
+  // Find Monday of current week
+  const monday = new Date(viewDate);
+  const day = monday.getDay();
+  const diff = (day === 0 ? -6 : 1) - day;
+  monday.setDate(monday.getDate() + diff);
+
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  document.getElementById('navLabel').textContent = `${monday.getMonth() + 1}/${monday.getDate()} ~ ${sunday.getMonth() + 1}/${sunday.getDate()}`;
+
+  const hours = [];
+  for (let h = 7; h <= 21; h++) hours.push(h);
+
+  const days = [];
+  const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    days.push({ date: d, name: dayNames[i], dateStr: formatDate(d) });
+  }
+
+  let html = '<div class="overflow-x-auto">';
+  html += '<div class="min-w-[800px]">';
+
+  // Header
+  html += '<div class="grid grid-cols-8 border-b border-gray-200">';
+  html += '<div class="p-3 text-sm text-gray-400 text-center">시간</div>';
+  days.forEach(d => {
+    const isToday = isSameDay(d.date, today);
+    html += `<div class="p-3 text-center ${isToday ? 'bg-blue-50' : ''}">
+      <div class="text-sm font-medium ${isToday ? 'text-blue-600' : 'text-gray-500'}">${d.name}</div>
+      <div class="text-lg font-bold ${isToday ? 'text-blue-600' : 'text-gray-900'}">${d.date.getDate()}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Time grid
+  html += '<div class="relative">';
+  hours.forEach(h => {
+    html += '<div class="grid grid-cols-8 border-b border-gray-100" style="height:48px">';
+    html += `<div class="p-1 text-xs text-gray-400 text-right pr-3 pt-1">${String(h).padStart(2, '0')}:00</div>`;
+    days.forEach(d => {
+      const isToday = isSameDay(d.date, today);
+      html += `<div class="border-l border-gray-100 ${isToday ? 'bg-blue-50/30' : ''} relative cursor-pointer hover:bg-blue-50/50" onclick="openModal('${d.dateStr}','${String(h).padStart(2,'0')}:00')"></div>`;
+    });
+    html += '</div>';
+  });
+
+  // Overlay events
+  html += '<div class="absolute inset-0 pointer-events-none">';
+  days.forEach((d, dayIdx) => {
+    const events = getEventsForDate(d.dateStr);
+    events.forEach(ev => {
+      const startParts = ev.start.split(':');
+      const endParts = ev.end.split(':');
+      const startH = parseInt(startParts[0]) + parseInt(startParts[1]) / 60;
+      const endH = parseInt(endParts[0]) + parseInt(endParts[1]) / 60;
+      const top = (startH - 7) * 48;
+      const height = Math.max(24, (endH - startH) * 48);
+      const left = (dayIdx + 1) * (100 / 8);
+      const width = 100 / 8 - 0.5;
+      const vIdx = (ev.vehicle || 1) - 1;
+
+      html += `<div class="absolute pointer-events-auto cursor-pointer rounded-lg border-l-4 ${vehicleBorderColors[vIdx]} ${vehicleColors[vIdx]} px-2 py-1 overflow-hidden text-xs shadow-sm hover:shadow-md transition"
+        style="top:${top}px;height:${height}px;left:${left}%;width:${width}%;"
+        onclick="editEvent(${ev.id})">
+        <div class="font-semibold truncate">${ev.spotName}</div>
+        <div class="text-gray-500">${ev.start}~${ev.end}</div>
+      </div>`;
+    });
+  });
+  html += '</div>';
+
+  html += '</div></div></div>';
+  container.innerHTML = html;
+}
+
+// Modal
+function openModal(dateStr, time) {
+  document.getElementById('eventModal').classList.remove('hidden');
+  document.getElementById('modalTitle').textContent = '일정 추가';
+  document.getElementById('btnDelete').classList.add('hidden');
+  document.getElementById('eventForm').reset();
+  document.getElementById('eventId').value = '';
+  document.getElementById('eventDate').value = dateStr || formatDate(today);
+  if (time) {
+    document.getElementById('eventStart').value = time;
+    const endH = parseInt(time.split(':')[0]) + 2;
+    document.getElementById('eventEnd').value = String(Math.min(21, endH)).padStart(2, '0') + ':00';
+  }
+}
+
+function editEvent(id) {
+  const events = loadEvents();
+  const ev = events.find(e => e.id === id);
+  if (!ev) return;
+
+  document.getElementById('eventModal').classList.remove('hidden');
+  document.getElementById('modalTitle').textContent = '일정 수정';
+  document.getElementById('btnDelete').classList.remove('hidden');
+  document.getElementById('eventId').value = ev.id;
+  document.getElementById('eventDate').value = ev.date;
+  document.getElementById('eventStart').value = ev.start;
+  document.getElementById('eventEnd').value = ev.end;
+  document.getElementById('eventSpot').value = ev.spotId || '';
+  document.getElementById('eventVehicle').value = ev.vehicle || 1;
+  document.getElementById('eventNotes').value = ev.notes || '';
+}
+
+function closeModal() {
+  document.getElementById('eventModal').classList.add('hidden');
+}
+
+function deleteEvent() {
+  const id = parseInt(document.getElementById('eventId').value);
+  if (!id) return;
+  let events = loadEvents();
+  events = events.filter(e => e.id !== id);
+  saveEvents(events);
+  closeModal();
+  renderCalendar();
+}
+
+document.getElementById('eventForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const id = document.getElementById('eventId').value;
+  const spotId = document.getElementById('eventSpot').value;
+  const spot = CAMPAIGN_SPOTS.find(s => s.id == spotId);
+
+  const eventData = {
+    id: id ? parseInt(id) : Date.now(),
+    date: document.getElementById('eventDate').value,
+    start: document.getElementById('eventStart').value,
+    end: document.getElementById('eventEnd').value,
+    spotId: spotId ? parseInt(spotId) : null,
+    spotName: spot ? spot.name : '미정',
+    vehicle: parseInt(document.getElementById('eventVehicle').value),
+    notes: document.getElementById('eventNotes').value
+  };
+
+  let events = loadEvents();
+  if (id) {
+    events = events.map(ev => ev.id === parseInt(id) ? eventData : ev);
+  } else {
+    events.push(eventData);
+  }
+
+  saveEvents(events);
+  closeModal();
+  renderCalendar();
+});
+
+// AI Schedule Generation
+function generateAISchedule() {
+  const monday = new Date(viewDate);
+  const day = monday.getDay();
+  const diff = (day === 0 ? -6 : 1) - day;
+  monday.setDate(monday.getDate() + diff);
+
+  const aiSchedule = [
+    { start: '08:00', end: '10:00', spotIds: [1, 16, 6, 17, 38], notes: '역세권/출근길 유세 - 유동인구 최대 시간대' },
+    { start: '10:00', end: '12:00', spotIds: [4, 10, 8, 12, 27], notes: '재래시장/관공서 주변 유세' },
+    { start: '14:00', end: '16:00', spotIds: [13, 14, 28, 5, 19], notes: '상가/대학교 주변 유세' },
+    { start: '17:00', end: '19:00', spotIds: [7, 9, 3, 15, 20], notes: '아파트단지/퇴근길 유세 - 주거지역 집중' }
+  ];
+
+  // Remove existing AI-generated events for this week
+  let events = loadEvents();
+  for (let d = 0; d < 5; d++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + d);
+    const dateStr = formatDate(date);
+    events = events.filter(e => e.date !== dateStr);
+  }
+
+  // Generate new events
+  for (let d = 0; d < 5; d++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + d);
+    const dateStr = formatDate(date);
+
+    aiSchedule.forEach((slot, slotIdx) => {
+      const spotId = slot.spotIds[d % slot.spotIds.length];
+      const spot = CAMPAIGN_SPOTS.find(s => s.id === spotId);
+      events.push({
+        id: Date.now() + d * 1000 + slotIdx,
+        date: dateStr,
+        start: slot.start,
+        end: slot.end,
+        spotId: spotId,
+        spotName: spot ? spot.name : '',
+        vehicle: (slotIdx % 2) + 1,
+        notes: slot.notes
+      });
+    });
+  }
+
+  saveEvents(events);
+  renderCalendar();
+  showToast('월~금 최적 유세 일정이 생성되었습니다. TIME_PATTERNS 기반 피크타임 유세 추천입니다.');
+}
+
+function showToast(msg) {
+  document.getElementById('aiToastMsg').textContent = msg;
+  document.getElementById('aiToast').classList.remove('hidden');
+  setTimeout(() => hideToast(), 5000);
+}
+
+function hideToast() {
+  document.getElementById('aiToast').classList.add('hidden');
+}
+
+// Initialize
+seedSampleEvents();
+renderCalendar();
+</script>
+</body>
+</html>

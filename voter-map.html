@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>유권자 밀집도 분석 — 일렉트맵AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Pretendard Variable','Pretendard','system-ui','sans-serif']}}}}</script>
+<link rel="stylesheet" href="css/custom.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<style>
+  #voter-map-container { height: calc(100vh - 64px - 44px); }
+  .sidebar { width: 340px; transition: transform 0.3s ease; }
+  .sidebar.collapsed { transform: translateX(-100%); }
+  .sidebar-toggle {
+    position: absolute; top: 12px; left: 12px; z-index: 1000;
+    background: white; border: none; border-radius: 8px;
+    padding: 8px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    cursor: pointer; font-size: 14px; font-weight: 600;
+  }
+  .filter-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 6px 14px; border-radius: 9999px; font-size: 13px;
+    font-weight: 500; cursor: pointer; transition: all 0.2s;
+    border: 1.5px solid #e2e8f0; background: white; color: #475569;
+  }
+  .filter-chip.active { border-color: #2563eb; background: #eff6ff; color: #2563eb; }
+  .filter-chip:hover { border-color: #93c5fd; }
+  .time-btn {
+    padding: 6px 12px; border-radius: 8px; font-size: 12px;
+    font-weight: 600; cursor: pointer; transition: all 0.2s;
+    border: 1.5px solid #e2e8f0; background: white; color: #475569;
+  }
+  .time-btn.active { border-color: #2563eb; background: #2563eb; color: white; }
+  .time-btn:hover { border-color: #93c5fd; }
+  .toggle-group {
+    display: flex; border-radius: 8px; overflow: hidden; border: 1.5px solid #e2e8f0;
+  }
+  .toggle-btn {
+    flex: 1; padding: 8px 0; text-align: center; font-size: 13px;
+    font-weight: 600; cursor: pointer; transition: all 0.2s;
+    background: white; color: #64748b;
+  }
+  .toggle-btn.active { background: #2563eb; color: white; }
+  .cluster-item {
+    padding: 10px 12px; border-radius: 10px; border: 1px solid #e2e8f0;
+    background: #f8fafc; cursor: pointer; transition: all 0.2s;
+  }
+  .cluster-item:hover { border-color: #93c5fd; background: #eff6ff; }
+  @media (max-width: 768px) {
+    .sidebar { position: absolute; z-index: 999; height: 100%; width: 300px; }
+  }
+</style>
+</head>
+<body class="antialiased bg-white text-gray-900">
+<div id="test-banner"></div>
+<div id="app-header"></div>
+
+<div class="relative flex" style="height: calc(100vh - 64px - 44px);">
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar bg-white border-r border-gray-200 flex flex-col overflow-y-auto shrink-0">
+    <div class="p-5 space-y-5">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold text-gray-900">유권자 밀집도 분석</h2>
+        <button onclick="toggleSidebar()" class="md:hidden p-1 text-gray-400 hover:text-gray-700 rounded">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- District Selector -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">선거구 선택</label>
+        <select id="district-select" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white" onchange="onDistrictChange()">
+          <option value="">전체 보기</option>
+        </select>
+      </div>
+
+      <!-- Divider -->
+      <div class="border-t border-gray-100"></div>
+
+      <!-- Age Group Filter -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-3">연령대 필터</label>
+        <div class="flex flex-wrap gap-2">
+          <label class="filter-chip active"><input type="checkbox" class="sr-only" value="20" checked onchange="onFilterChange()"><span>20대</span></label>
+          <label class="filter-chip active"><input type="checkbox" class="sr-only" value="30" checked onchange="onFilterChange()"><span>30대</span></label>
+          <label class="filter-chip active"><input type="checkbox" class="sr-only" value="40" checked onchange="onFilterChange()"><span>40대</span></label>
+          <label class="filter-chip active"><input type="checkbox" class="sr-only" value="50" checked onchange="onFilterChange()"><span>50대</span></label>
+          <label class="filter-chip active"><input type="checkbox" class="sr-only" value="60" checked onchange="onFilterChange()"><span>60대+</span></label>
+        </div>
+      </div>
+
+      <!-- Time Period -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-3">시간대 선택</label>
+        <div class="grid grid-cols-2 gap-2">
+          <button class="time-btn active" data-time="commute-morning" onclick="selectTimePeriod(this)">출근 (07-09)</button>
+          <button class="time-btn" data-time="lunch" onclick="selectTimePeriod(this)">점심 (11-13)</button>
+          <button class="time-btn" data-time="commute-evening" onclick="selectTimePeriod(this)">퇴근 (17-19)</button>
+          <button class="time-btn" data-time="night" onclick="selectTimePeriod(this)">야간 (19-22)</button>
+        </div>
+      </div>
+
+      <!-- Population Toggle -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-3">인구 유형</label>
+        <div class="toggle-group">
+          <div class="toggle-btn active" data-type="floating" onclick="selectPopType(this)">유동인구</div>
+          <div class="toggle-btn" data-type="resident" onclick="selectPopType(this)">거주인구</div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="border-t border-gray-100"></div>
+
+      <!-- Cluster Analysis Button -->
+      <button id="cluster-btn" onclick="runClusterAnalysis()" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition shadow-sm flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        클러스터 분석
+      </button>
+
+      <!-- Cluster Results -->
+      <div id="cluster-results" class="hidden space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-gray-800">클러스터 분석 결과</h3>
+          <span id="cluster-count" class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold"></span>
+        </div>
+        <div id="cluster-list" class="space-y-2"></div>
+        <div id="cluster-summary" class="bg-blue-50 rounded-lg p-3 text-sm text-blue-800"></div>
+      </div>
+
+      <!-- Spot Info -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">거점 정보</label>
+        <div id="spot-count" class="text-sm text-gray-500">선거구를 선택하면 거점 정보가 표시됩니다.</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Map Area -->
+  <div class="flex-1 relative">
+    <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="sidebar-toggle hidden">
+      <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      필터
+    </button>
+    <div id="map" class="w-full h-full"></div>
+    <!-- Legend -->
+    <div class="absolute bottom-6 right-6 bg-white rounded-xl shadow-lg border border-gray-200 p-4 z-[500]" style="min-width:160px">
+      <h4 class="text-xs font-bold text-gray-700 mb-2">유권자 밀집도</h4>
+      <div class="flex items-center gap-1">
+        <span class="text-[10px] text-gray-500">낮음</span>
+        <div class="flex-1 h-3 rounded" style="background:linear-gradient(to right,#ffffb2,#fed976,#feb24c,#f03b20,#bd0026)"></div>
+        <span class="text-[10px] text-gray-500">높음</span>
+      </div>
+      <div class="mt-2 flex items-center gap-2 text-[11px] text-gray-600">
+        <span class="w-3 h-3 rounded-full bg-blue-600 inline-block border-2 border-white shadow"></span> 클러스터 중심
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app-footer"></div>
+
+<script src="js/mock-data.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/map-engine.js"></script>
+<script>
+initPage('voter-map');
+
+/* ── 상태 변수 ── */
+var map, heatLayer, markerGroup, clusterMarkerGroup;
+var currentDistrict = '';
+var activeTimePeriod = 'commute-morning';
+var populationType = 'floating';
+var activeAgeGroups = [20, 30, 40, 50, 60];
+var clusterResults = [];
+
+/* ── 초기화 ── */
+(function init() {
+  // 지도 초기화
+  map = initMap('map', [37.2636, 127.0286], 12);
+  markerGroup = createLayerGroup(map);
+  clusterMarkerGroup = createLayerGroup(map);
+
+  // 선거구 드롭다운 채우기
+  var sel = document.getElementById('district-select');
+  DISTRICTS.forEach(function(d) {
+    var opt = document.createElement('option');
+    opt.value = d.dong;
+    opt.textContent = d.sigungu + ' ' + d.dong;
+    sel.appendChild(opt);
+  });
+
+  // 필터 칩 이벤트
+  document.querySelectorAll('.filter-chip input').forEach(function(cb) {
+    cb.parentElement.addEventListener('click', function() {
+      cb.checked = !cb.checked;
+      this.classList.toggle('active', cb.checked);
+      onFilterChange();
+    });
+  });
+
+  // 전체 데이터로 초기 히트맵
+  updateMap();
+})();
+
+/* ── 선거구 변경 ── */
+function onDistrictChange() {
+  currentDistrict = document.getElementById('district-select').value;
+  clusterResults = [];
+  document.getElementById('cluster-results').classList.add('hidden');
+  clearLayers(map, clusterMarkerGroup);
+  updateMap();
+}
+
+/* ── 필터 변경 ── */
+function onFilterChange() {
+  activeAgeGroups = [];
+  document.querySelectorAll('.filter-chip input').forEach(function(cb) {
+    if (cb.checked) activeAgeGroups.push(parseInt(cb.value));
+  });
+  updateMap();
+}
+
+/* ── 시간대 선택 ── */
+function selectTimePeriod(btn) {
+  document.querySelectorAll('.time-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  activeTimePeriod = btn.dataset.time;
+  updateMap();
+}
+
+/* ── 인구 유형 선택 ── */
+function selectPopType(btn) {
+  document.querySelectorAll('.toggle-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  populationType = btn.dataset.type;
+  updateMap();
+}
+
+/* ── 사이드바 토글 ── */
+function toggleSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  var toggleBtn = document.getElementById('sidebar-toggle-btn');
+  sidebar.classList.toggle('collapsed');
+  if (sidebar.classList.contains('collapsed')) {
+    toggleBtn.classList.remove('hidden');
+  } else {
+    toggleBtn.classList.add('hidden');
+  }
+  setTimeout(function() { map.invalidateSize(); }, 350);
+}
+
+/* ── 시간대별 가중치 ── */
+function getTimeWeight() {
+  var weights = {
+    'commute-morning': { hours: [7, 8], multiplier: 1.0 },
+    'lunch':           { hours: [11, 12], multiplier: 0.75 },
+    'commute-evening': { hours: [17, 18], multiplier: 0.95 },
+    'night':           { hours: [19, 20, 21], multiplier: 0.6 }
+  };
+  return weights[activeTimePeriod] || weights['commute-morning'];
+}
+
+/* ── 연령 가중치 계산 ── */
+function getAgeWeight(district) {
+  if (!district) return 1;
+  var total = 0;
+  if (activeAgeGroups.indexOf(20) >= 0) total += district.age_20s_pct;
+  if (activeAgeGroups.indexOf(30) >= 0) total += district.age_30s_pct;
+  if (activeAgeGroups.indexOf(40) >= 0) total += district.age_40s_pct;
+  if (activeAgeGroups.indexOf(50) >= 0) total += district.age_50s_pct;
+  if (activeAgeGroups.indexOf(60) >= 0) total += district.age_60plus_pct;
+  return total / 100;
+}
+
+/* ── 히트맵 포인트 생성 ── */
+function generateHeatPoints(spots, district) {
+  var points = [];
+  var timeWeight = getTimeWeight();
+  var ageWeight = district ? getAgeWeight(district) : 0.8;
+  var popMultiplier = populationType === 'floating' ? 1.0 : 0.7;
+
+  spots.forEach(function(spot) {
+    var baseIntensity = (spot.voterReach / 12000) * ageWeight * popMultiplier;
+
+    // 시간대에 맞는 스팟 유형 가중치
+    var spotType = mapSpotTypeToPattern(spot.type);
+    var patternData = TIME_PATTERNS[spotType];
+    if (patternData) {
+      var hourAvg = 0;
+      timeWeight.hours.forEach(function(h) { hourAvg += patternData[h]; });
+      hourAvg /= timeWeight.hours.length;
+      baseIntensity *= hourAvg;
+    } else {
+      baseIntensity *= timeWeight.multiplier;
+    }
+
+    // 거점 주변에 랜덤 포인트 생성
+    var numPoints = Math.max(5, Math.round(spot.voterReach / 500));
+    for (var i = 0; i < numPoints; i++) {
+      var angle = Math.random() * Math.PI * 2;
+      var dist = Math.random() * 0.008;
+      var lat = spot.lat + Math.cos(angle) * dist;
+      var lng = spot.lng + Math.sin(angle) * dist;
+      var intensity = baseIntensity * (0.5 + Math.random() * 0.5);
+      points.push([lat, lng, Math.min(1, intensity)]);
+    }
+  });
+
+  return points;
+}
+
+/* ── 스팟 유형을 TIME_PATTERNS 키로 매핑 ── */
+function mapSpotTypeToPattern(type) {
+  var mapping = {
+    '교통': '역세권',
+    '시장': '시장',
+    '주거': '아파트단지',
+    '대학교': '대학교',
+    '공원': '공원',
+    '상업': '역세권',
+    '관광': '공원',
+    '관공서': '대학교'
+  };
+  return mapping[type] || '역세권';
+}
+
+/* ── 지도 업데이트 ── */
+function updateMap() {
+  // 기존 레이어 제거
+  if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
+  clearLayers(map, markerGroup);
+
+  // 거점 필터링
+  var spots;
+  var district = null;
+  if (currentDistrict) {
+    spots = getSpotsForDistrict(currentDistrict);
+    district = DISTRICTS.find(function(d) { return d.dong === currentDistrict; });
+  } else {
+    spots = CAMPAIGN_SPOTS;
+  }
+
+  if (spots.length === 0) {
+    document.getElementById('spot-count').textContent = '해당 선거구에 거점이 없습니다.';
+    return;
+  }
+
+  // 히트맵 생성
+  var heatPoints = generateHeatPoints(spots, district);
+  heatLayer = addHeatLayer(map, heatPoints, { radius: 20, blur: 18 });
+
+  // 거점 마커
+  spots.forEach(function(spot) {
+    var typeColors = {
+      '교통': '#2563eb', '시장': '#ea580c', '주거': '#059669',
+      '대학교': '#7c3aed', '공원': '#06b6d4', '상업': '#d97706',
+      '관광': '#e11d48', '관공서': '#6366f1'
+    };
+    var color = typeColors[spot.type] || '#6b7280';
+
+    var icon = L.divIcon({
+      className: 'custom-div-icon',
+      html: '<div style="background:' + color + ';color:white;border-radius:50%;width:10px;height:10px;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);"></div>',
+      iconSize: [10, 10],
+      iconAnchor: [5, 5]
+    });
+
+    var marker = L.marker([spot.lat, spot.lng], { icon: icon });
+    marker.bindPopup(
+      '<div class="text-sm">' +
+      '<p class="font-bold text-gray-900 text-base">' + spot.name + '</p>' +
+      '<div class="mt-2 space-y-1">' +
+      '<p><span class="text-gray-500">유형:</span> <span class="font-medium" style="color:' + color + '">' + spot.type + '</span></p>' +
+      '<p><span class="text-gray-500">유권자 접촉:</span> <span class="font-semibold text-blue-600">' + fmt(spot.voterReach) + '명</span></p>' +
+      '<p><span class="text-gray-500">피크 시간:</span> <span class="font-medium">' + spot.peakHour + '</span></p>' +
+      '<p><span class="text-gray-500">일일 비용:</span> <span class="font-medium">' + fmt(spot.dailyCost) + '원</span></p>' +
+      '</div></div>', { maxWidth: 240 }
+    );
+    markerGroup.addLayer(marker);
+  });
+
+  // 지도 맞춤
+  if (currentDistrict && district) {
+    map.setView([district.lat, district.lng], 13);
+  }
+
+  // 거점 정보
+  var totalReach = spots.reduce(function(sum, s) { return sum + s.voterReach; }, 0);
+  document.getElementById('spot-count').innerHTML =
+    '<div class="space-y-1">' +
+    '<p class="font-semibold text-gray-800">거점 ' + spots.length + '곳</p>' +
+    '<p>총 유권자 접촉: <span class="font-bold text-blue-600">' + fmt(totalReach) + '명</span></p>' +
+    '</div>';
+}
+
+/* ── K-means 클러스터링 ── */
+function kMeansClustering(points, k, maxIter) {
+  maxIter = maxIter || 50;
+  if (points.length === 0 || k <= 0) return [];
+  k = Math.min(k, points.length);
+
+  // 초기 중심: 랜덤 선택
+  var shuffled = points.slice().sort(function() { return Math.random() - 0.5; });
+  var centroids = shuffled.slice(0, k).map(function(p) {
+    return { lat: p.lat, lng: p.lng };
+  });
+
+  var assignments = new Array(points.length);
+
+  for (var iter = 0; iter < maxIter; iter++) {
+    // 포인트 할당
+    var changed = false;
+    for (var i = 0; i < points.length; i++) {
+      var minDist = Infinity;
+      var minIdx = 0;
+      for (var j = 0; j < centroids.length; j++) {
+        var dlat = points[i].lat - centroids[j].lat;
+        var dlng = points[i].lng - centroids[j].lng;
+        var d = dlat * dlat + dlng * dlng;
+        if (d < minDist) { minDist = d; minIdx = j; }
+      }
+      if (assignments[i] !== minIdx) { assignments[i] = minIdx; changed = true; }
+    }
+
+    if (!changed) break;
+
+    // 중심 업데이트
+    for (var c = 0; c < centroids.length; c++) {
+      var sumLat = 0, sumLng = 0, sumWeight = 0, count = 0;
+      for (var p = 0; p < points.length; p++) {
+        if (assignments[p] === c) {
+          var w = points[p].weight || 1;
+          sumLat += points[p].lat * w;
+          sumLng += points[p].lng * w;
+          sumWeight += w;
+          count++;
+        }
+      }
+      if (count > 0) {
+        centroids[c].lat = sumLat / sumWeight;
+        centroids[c].lng = sumLng / sumWeight;
+      }
+    }
+  }
+
+  // 결과 정리
+  var results = centroids.map(function(c, idx) {
+    return { center: { lat: c.lat, lng: c.lng }, points: [], totalWeight: 0 };
+  });
+  for (var i = 0; i < points.length; i++) {
+    results[assignments[i]].points.push(points[i]);
+    results[assignments[i]].totalWeight += (points[i].weight || 1);
+  }
+
+  // 가중치 내림차순 정렬
+  results.sort(function(a, b) { return b.totalWeight - a.totalWeight; });
+
+  return results;
+}
+
+/* ── 클러스터 분석 실행 ── */
+function runClusterAnalysis() {
+  var btn = document.getElementById('cluster-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg> 분석 중...';
+
+  setTimeout(function() {
+    // 현재 거점 데이터
+    var spots;
+    if (currentDistrict) {
+      spots = getSpotsForDistrict(currentDistrict);
+    } else {
+      spots = CAMPAIGN_SPOTS;
+    }
+
+    var clusterPoints = spots.map(function(s) {
+      return { lat: s.lat, lng: s.lng, weight: s.voterReach, name: s.name };
+    });
+
+    // k 값 결정: 거점 수에 따라
+    var k = Math.min(Math.max(3, Math.round(spots.length / 4)), 8);
+    clusterResults = kMeansClustering(clusterPoints, k);
+
+    // 클러스터 마커 표시
+    clearLayers(map, clusterMarkerGroup);
+    var colors = ['blue', 'red', 'green', 'orange', 'purple', 'blue', 'red', 'green'];
+    var colorHex = ['#2563eb', '#dc2626', '#059669', '#ea580c', '#7c3aed', '#2563eb', '#dc2626', '#059669'];
+
+    clusterResults.forEach(function(cluster, idx) {
+      // 클러스터 영역 원
+      var maxDist = 0;
+      cluster.points.forEach(function(p) {
+        var dlat = p.lat - cluster.center.lat;
+        var dlng = p.lng - cluster.center.lng;
+        var d = Math.sqrt(dlat * dlat + dlng * dlng);
+        if (d > maxDist) maxDist = d;
+      });
+      var radiusM = Math.max(300, maxDist * 111000);
+
+      var circle = L.circle([cluster.center.lat, cluster.center.lng], {
+        radius: radiusM,
+        color: colorHex[idx % colorHex.length],
+        fillColor: colorHex[idx % colorHex.length],
+        fillOpacity: 0.1,
+        weight: 2,
+        dashArray: '5,5'
+      });
+      clusterMarkerGroup.addLayer(circle);
+
+      // 중심 마커
+      var spotNames = cluster.points.map(function(p) { return p.name; }).join(', ');
+      var popupHtml = '<div class="text-sm">' +
+        '<p class="font-bold text-base">클러스터 ' + (idx + 1) + '</p>' +
+        '<p class="mt-1"><span class="text-gray-500">거점 수:</span> <span class="font-semibold">' + cluster.points.length + '곳</span></p>' +
+        '<p><span class="text-gray-500">총 유권자:</span> <span class="font-bold text-blue-600">' + fmt(cluster.totalWeight) + '명</span></p>' +
+        '<p class="mt-1 text-gray-500 text-xs">포함 거점: ' + spotNames + '</p>' +
+        '</div>';
+
+      var marker = addNumberedMarker(map, cluster.center.lat, cluster.center.lng, idx + 1, colors[idx % colors.length], popupHtml);
+      clusterMarkerGroup.addLayer(marker);
+    });
+
+    // 결과 패널 업데이트
+    document.getElementById('cluster-results').classList.remove('hidden');
+    document.getElementById('cluster-count').textContent = clusterResults.length + '개 클러스터';
+
+    var listHtml = '';
+    clusterResults.forEach(function(cluster, idx) {
+      listHtml += '<div class="cluster-item" onclick="map.setView([' + cluster.center.lat + ',' + cluster.center.lng + '],14)">' +
+        '<div class="flex items-center gap-3">' +
+        '<div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style="background:' + colorHex[idx % colorHex.length] + '">' + (idx + 1) + '</div>' +
+        '<div class="min-w-0">' +
+        '<p class="text-sm font-semibold text-gray-800 truncate">클러스터 ' + (idx + 1) + ' (' + cluster.points.length + '곳)</p>' +
+        '<p class="text-xs text-gray-500">유권자 접촉: ' + fmt(cluster.totalWeight) + '명</p>' +
+        '</div></div></div>';
+    });
+    document.getElementById('cluster-list').innerHTML = listHtml;
+
+    var totalWeight = clusterResults.reduce(function(s, c) { return s + c.totalWeight; }, 0);
+    var topCluster = clusterResults[0];
+    document.getElementById('cluster-summary').innerHTML =
+      '<p class="font-semibold mb-1">분석 요약</p>' +
+      '<p>총 유권자 접촉: <span class="font-bold">' + fmt(totalWeight) + '명</span></p>' +
+      '<p>최대 밀집 클러스터: <span class="font-bold">클러스터 1</span> (' + fmt(topCluster.totalWeight) + '명)</p>' +
+      '<p class="mt-1 text-xs text-blue-600">클러스터 중심에 유세 차량을 배치하면 효율이 극대화됩니다.</p>';
+
+    btn.disabled = false;
+    btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg> 클러스터 분석';
+  }, 600);
+}
+</script>
+</body>
+</html>
