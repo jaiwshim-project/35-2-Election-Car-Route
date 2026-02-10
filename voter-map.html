@@ -49,6 +49,8 @@
     background: #f8fafc; cursor: pointer; transition: all 0.2s;
   }
   .cluster-item:hover { border-color: #93c5fd; background: #eff6ff; }
+  .legend-collapsed #legend-body { display: none; }
+  .legend-collapsed { min-width: auto !important; }
   @media (max-width: 768px) {
     .sidebar { position: absolute; z-index: 999; height: 100%; width: 300px; }
   }
@@ -122,6 +124,21 @@
         클러스터 분석
       </button>
 
+      <!-- Route Overlay Button -->
+      <button id="route-btn" onclick="toggleRouteOverlay()" class="w-full bg-emerald-600 text-white font-semibold py-3 rounded-xl hover:bg-emerald-700 transition shadow-sm flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+        이동경로 보기
+      </button>
+
+      <!-- Route Overlay Results -->
+      <div id="route-results" class="hidden space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-gray-800">최적 이동경로</h3>
+          <button onclick="hideRouteOverlay()" class="text-xs text-red-500 hover:text-red-700 font-semibold">경로 숨기기</button>
+        </div>
+        <div id="route-info" class="space-y-2"></div>
+      </div>
+
       <!-- Cluster Results -->
       <div id="cluster-results" class="hidden space-y-3">
         <div class="flex items-center justify-between">
@@ -148,15 +165,119 @@
     </button>
     <div id="map" class="w-full h-full"></div>
     <!-- Legend -->
-    <div class="absolute bottom-6 right-6 bg-white rounded-xl shadow-lg border border-gray-200 p-4 z-[500]" style="min-width:160px">
-      <h4 class="text-xs font-bold text-gray-700 mb-2">유권자 밀집도</h4>
-      <div class="flex items-center gap-1">
-        <span class="text-[10px] text-gray-500">낮음</span>
-        <div class="flex-1 h-3 rounded" style="background:linear-gradient(to right,#ffffb2,#fed976,#feb24c,#f03b20,#bd0026)"></div>
-        <span class="text-[10px] text-gray-500">높음</span>
+    <div id="map-legend" class="absolute bottom-6 right-6 bg-white rounded-xl shadow-lg border border-gray-200 z-[500] transition-all" style="min-width:220px; max-height: calc(100% - 48px); overflow-y:auto;">
+      <!-- Legend Header -->
+      <div class="flex items-center justify-between px-4 pt-3 pb-2 border-b border-gray-100 sticky top-0 bg-white rounded-t-xl">
+        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-wider">범례</h4>
+        <button onclick="document.getElementById('map-legend').classList.toggle('legend-collapsed')" class="text-gray-400 hover:text-gray-700 transition p-0.5 rounded">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
       </div>
-      <div class="mt-2 flex items-center gap-2 text-[11px] text-gray-600">
-        <span class="w-3 h-3 rounded-full bg-blue-600 inline-block border-2 border-white shadow"></span> 클러스터 중심
+      <div id="legend-body" class="p-4 space-y-4">
+
+        <!-- 1. 히트맵 밀집도 -->
+        <div>
+          <p class="text-[11px] font-semibold text-gray-700 mb-1.5">유권자 밀집도 (히트맵)</p>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] text-gray-400 w-6 text-right shrink-0">낮음</span>
+            <div class="flex-1 h-3.5 rounded-md" style="background:linear-gradient(to right,#ffffb2,#fed976,#feb24c,#fd8d3c,#f03b20,#bd0026)"></div>
+            <span class="text-[10px] text-gray-400 w-6 shrink-0">높음</span>
+          </div>
+          <div class="flex justify-between mt-1 px-7">
+            <span class="text-[9px] text-gray-400">~1,000명</span>
+            <span class="text-[9px] text-gray-400">~5,000명</span>
+            <span class="text-[9px] text-gray-400">10,000명+</span>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-100"></div>
+
+        <!-- 2. 거점 유형별 마커 -->
+        <div>
+          <p class="text-[11px] font-semibold text-gray-700 mb-2">유세 거점 유형</p>
+          <div class="grid grid-cols-2 gap-x-3 gap-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:#2563eb; border:1.5px solid white; box-shadow:0 0 0 1px #2563eb;"></span>
+              <span class="text-[11px] text-gray-600">교통 (역·정류장)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:#ea580c; border:1.5px solid white; box-shadow:0 0 0 1px #ea580c;"></span>
+              <span class="text-[11px] text-gray-600">시장 (재래시장)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:#059669; border:1.5px solid white; box-shadow:0 0 0 1px #059669;"></span>
+              <span class="text-[11px] text-gray-600">주거 (아파트단지)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:#7c3aed; border:1.5px solid white; box-shadow:0 0 0 1px #7c3aed;"></span>
+              <span class="text-[11px] text-gray-600">대학교</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:#06b6d4; border:1.5px solid white; box-shadow:0 0 0 1px #06b6d4;"></span>
+              <span class="text-[11px] text-gray-600">공원 (호수·공원)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:#d97706; border:1.5px solid white; box-shadow:0 0 0 1px #d97706;"></span>
+              <span class="text-[11px] text-gray-600">상업 (상가·거리)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:#e11d48; border:1.5px solid white; box-shadow:0 0 0 1px #e11d48;"></span>
+              <span class="text-[11px] text-gray-600">관광 (문화재)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:#6366f1; border:1.5px solid white; box-shadow:0 0 0 1px #6366f1;"></span>
+              <span class="text-[11px] text-gray-600">관공서 (구청 등)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-100"></div>
+
+        <!-- 3. 클러스터 분석 표시 -->
+        <div>
+          <p class="text-[11px] font-semibold text-gray-700 mb-2">클러스터 분석</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-blue-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0 border-2 border-white shadow">1</span>
+              <span class="text-[11px] text-gray-600">클러스터 중심 (추천 유세 거점)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full shrink-0 border-2 border-dashed border-blue-400 bg-blue-50"></span>
+              <span class="text-[11px] text-gray-600">클러스터 영역 (점선 원)</span>
+            </div>
+          </div>
+          <div class="mt-2 flex flex-wrap gap-1">
+            <span class="inline-block w-3 h-3 rounded-full bg-blue-600"></span>
+            <span class="inline-block w-3 h-3 rounded-full bg-red-600"></span>
+            <span class="inline-block w-3 h-3 rounded-full bg-emerald-600"></span>
+            <span class="inline-block w-3 h-3 rounded-full bg-orange-500"></span>
+            <span class="inline-block w-3 h-3 rounded-full bg-purple-600"></span>
+            <span class="text-[10px] text-gray-400 ml-1">클러스터별 색상 구분</span>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-100"></div>
+
+        <!-- 4. 필터 현재 상태 -->
+        <div>
+          <p class="text-[11px] font-semibold text-gray-700 mb-2">현재 필터 설정</p>
+          <div id="legend-filter-status" class="space-y-1 text-[11px] text-gray-500">
+          </div>
+        </div>
+
+        <div class="border-t border-gray-100"></div>
+
+        <!-- 5. 데이터 출처 -->
+        <div>
+          <p class="text-[11px] font-semibold text-gray-700 mb-1.5">데이터 출처</p>
+          <div class="text-[10px] text-gray-400 space-y-0.5">
+            <p>유권자 수: 중앙선거관리위원회</p>
+            <p>유동인구: 행정안전부 (MOIS)</p>
+            <p>인구통계: 국가통계포털 (KOSIS)</p>
+            <p>지도: OpenStreetMap Contributors</p>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -167,16 +288,18 @@
 <script src="js/mock-data.js"></script>
 <script src="js/shared.js"></script>
 <script src="js/map-engine.js"></script>
+<script src="js/route-algorithm.js"></script>
 <script>
 initPage('voter-map');
 
 /* ── 상태 변수 ── */
-var map, heatLayer, markerGroup, clusterMarkerGroup;
+var map, heatLayer, markerGroup, clusterMarkerGroup, routeLayerGroup;
 var currentDistrict = '';
 var activeTimePeriod = 'commute-morning';
 var populationType = 'floating';
 var activeAgeGroups = [20, 30, 40, 50, 60];
 var clusterResults = [];
+var routeVisible = false;
 
 /* ── 초기화 ── */
 (function init() {
@@ -184,6 +307,7 @@ var clusterResults = [];
   map = initMap('map', [37.2636, 127.0286], 12);
   markerGroup = createLayerGroup(map);
   clusterMarkerGroup = createLayerGroup(map);
+  routeLayerGroup = createLayerGroup(map);
 
   // 선거구 드롭다운 채우기
   var sel = document.getElementById('district-select');
@@ -329,6 +453,27 @@ function mapSpotTypeToPattern(type) {
   return mapping[type] || '역세권';
 }
 
+/* ── 범례 필터 상태 업데이트 ── */
+function updateLegendStatus() {
+  var timeLabels = {
+    'commute-morning': '출근 (07~09시)',
+    'lunch': '점심 (11~13시)',
+    'commute-evening': '퇴근 (17~19시)',
+    'night': '야간 (19~22시)'
+  };
+  var ageText = activeAgeGroups.length === 5 ? '전 연령대' : activeAgeGroups.map(function(a) { return a + '대' + (a === 60 ? '+' : ''); }).join(', ');
+  var distText = currentDistrict || '전체 선거구';
+  var popText = populationType === 'floating' ? '유동인구' : '거주인구';
+  var el = document.getElementById('legend-filter-status');
+  if (el) {
+    el.innerHTML =
+      '<div class="flex items-center gap-1.5"><svg class="w-3 h-3 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>선거구: <b class="text-gray-700">' + distText + '</b></span></div>' +
+      '<div class="flex items-center gap-1.5"><svg class="w-3 h-3 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>시간대: <b class="text-gray-700">' + timeLabels[activeTimePeriod] + '</b></span></div>' +
+      '<div class="flex items-center gap-1.5"><svg class="w-3 h-3 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>연령: <b class="text-gray-700">' + ageText + '</b></span></div>' +
+      '<div class="flex items-center gap-1.5"><svg class="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg><span>인구 유형: <b class="text-gray-700">' + popText + '</b></span></div>';
+  }
+}
+
 /* ── 지도 업데이트 ── */
 function updateMap() {
   // 기존 레이어 제거
@@ -396,6 +541,9 @@ function updateMap() {
     '<p class="font-semibold text-gray-800">거점 ' + spots.length + '곳</p>' +
     '<p>총 유권자 접촉: <span class="font-bold text-blue-600">' + fmt(totalReach) + '명</span></p>' +
     '</div>';
+
+  // 범례 필터 상태 업데이트
+  updateLegendStatus();
 }
 
 /* ── K-means 클러스터링 ── */
@@ -552,6 +700,140 @@ function runClusterAnalysis() {
     btn.disabled = false;
     btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg> 클러스터 분석';
   }, 600);
+}
+
+/* ── 이동경로 오버레이 ── */
+function toggleRouteOverlay() {
+  if (routeVisible) {
+    hideRouteOverlay();
+    return;
+  }
+
+  var btn = document.getElementById('route-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg> 경로 계산 중...';
+
+  setTimeout(function() {
+    var spots;
+    if (currentDistrict) {
+      spots = getSpotsForDistrict(currentDistrict);
+    } else {
+      spots = CAMPAIGN_SPOTS.slice(0, 20); // 전체 시 너무 많으면 상위 20개
+    }
+
+    if (spots.length < 2) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg> 이동경로 보기';
+      alert('경로를 계산하려면 최소 2개 이상의 거점이 필요합니다.');
+      return;
+    }
+
+    // voterReach 높은 순 정렬 후 상위 선택
+    spots = spots.slice().sort(function(a, b) { return b.voterReach - a.voterReach; });
+
+    // 출발점: 첫 번째(가장 유권자 많은) 거점
+    var startPoint = { lat: spots[0].lat, lng: spots[0].lng };
+    var numVehicles = Math.min(3, Math.max(1, Math.ceil(spots.length / 5)));
+
+    // 경로 최적화 실행
+    var plan = vehicleRoutePlan(spots, numVehicles, startPoint);
+
+    // 레이어 초기화
+    clearLayers(map, routeLayerGroup);
+
+    var vehicleColors = ['#2563eb', '#dc2626', '#059669', '#ea580c', '#7c3aed'];
+    var vehicleNames = ['차량 A', '차량 B', '차량 C', '차량 D', '차량 E'];
+    var routeInfoHtml = '';
+
+    plan.forEach(function(vehicle, vIdx) {
+      var color = vehicleColors[vIdx % vehicleColors.length];
+
+      // 경로 폴리라인 생성
+      var routeCoords = [];
+      // 출발점 → 각 거점 → 복귀
+      routeCoords.push([startPoint.lat, startPoint.lng]);
+      vehicle.route.forEach(function(spotIdx) {
+        routeCoords.push([spots[spotIdx].lat, spots[spotIdx].lng]);
+      });
+      routeCoords.push([startPoint.lat, startPoint.lng]);
+
+      // 외곽선 (두꺼운 반투명)
+      var outerLine = L.polyline(routeCoords, {
+        color: color, weight: 8, opacity: 0.25, lineCap: 'round', lineJoin: 'round'
+      });
+      routeLayerGroup.addLayer(outerLine);
+
+      // 내부선 (실선)
+      var innerLine = L.polyline(routeCoords, {
+        color: color, weight: 3.5, opacity: 0.9, lineCap: 'round', lineJoin: 'round'
+      });
+      routeLayerGroup.addLayer(innerLine);
+
+      // 경유지 번호 마커
+      vehicle.route.forEach(function(spotIdx, order) {
+        var s = spots[spotIdx];
+        var icon = L.divIcon({
+          className: '',
+          html: '<div style="background:' + color + ';color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid white;box-shadow:0 1px 6px rgba(0,0,0,0.35);">' + (order + 1) + '</div>',
+          iconSize: [22, 22], iconAnchor: [11, 11]
+        });
+        var m = L.marker([s.lat, s.lng], { icon: icon, zIndexOffset: 1000 });
+        m.bindPopup('<div class="text-sm"><b>' + vehicleNames[vIdx] + ' - ' + (order + 1) + '번째</b><br>' + s.name + '<br>유권자: ' + fmt(s.voterReach) + '명</div>');
+        routeLayerGroup.addLayer(m);
+      });
+
+      // 출발점 마커
+      if (vIdx === 0) {
+        var startIcon = L.divIcon({
+          className: '',
+          html: '<div style="background:#f59e0b;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);">S</div>',
+          iconSize: [26, 26], iconAnchor: [13, 13]
+        });
+        var sm = L.marker([startPoint.lat, startPoint.lng], { icon: startIcon, zIndexOffset: 2000 });
+        sm.bindPopup('<div class="text-sm"><b>출발점</b><br>' + spots[0].name + '</div>');
+        routeLayerGroup.addLayer(sm);
+      }
+
+      // 정보 카드
+      var vehicleSpots = vehicle.route.map(function(idx) { return spots[idx]; });
+      var totalReach = vehicleSpots.reduce(function(s, sp) { return s + sp.voterReach; }, 0);
+      routeInfoHtml +=
+        '<div class="bg-white rounded-lg border border-gray-200 p-3">' +
+        '<div class="flex items-center gap-2 mb-2">' +
+        '<span class="w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center" style="background:' + color + '">' + String.fromCharCode(65 + vIdx) + '</span>' +
+        '<span class="text-sm font-bold text-gray-800">' + vehicleNames[vIdx] + '</span>' +
+        '</div>' +
+        '<div class="grid grid-cols-2 gap-2 text-[11px]">' +
+        '<div><span class="text-gray-500">거점:</span> <b>' + vehicle.route.length + '곳</b></div>' +
+        '<div><span class="text-gray-500">거리:</span> <b>' + vehicle.totalDistance.toFixed(1) + 'km</b></div>' +
+        '<div><span class="text-gray-500">시간:</span> <b>' + (vehicle.estimatedTime * 60).toFixed(0) + '분</b></div>' +
+        '<div><span class="text-gray-500">유권자:</span> <b class="text-blue-600">' + fmt(totalReach) + '명</b></div>' +
+        '</div>' +
+        '<div class="mt-2 text-[10px] text-gray-400">순서: ' + vehicleSpots.map(function(sp) { return sp.name; }).join(' → ') + '</div>' +
+        '</div>';
+    });
+
+    // 결과 패널 표시
+    document.getElementById('route-info').innerHTML = routeInfoHtml;
+    document.getElementById('route-results').classList.remove('hidden');
+
+    routeVisible = true;
+    btn.disabled = false;
+    btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+    btn.classList.add('bg-red-500', 'hover:bg-red-600');
+    btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/></svg> 이동경로 숨기기';
+  }, 500);
+}
+
+function hideRouteOverlay() {
+  clearLayers(map, routeLayerGroup);
+  routeVisible = false;
+  document.getElementById('route-results').classList.add('hidden');
+
+  var btn = document.getElementById('route-btn');
+  btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+  btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+  btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg> 이동경로 보기';
 }
 </script>
 </body>
