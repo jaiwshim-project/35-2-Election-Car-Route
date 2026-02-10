@@ -78,7 +78,7 @@ function renderFooter() {
 </div>
 </div>
 <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-<p>&copy; 2026 일렉션맵AI. All rights reserved.</p>
+<p>&copy; 2026 일렉션맵AI. Jaiwoo Shim &nbsp; All rights reserved.</p>
 <p>2026 지방선거 D-${Math.max(0, Math.ceil((new Date('2026-06-03') - new Date()) / 86400000))}일</p>
 </div>
 </div>
