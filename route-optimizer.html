@@ -69,6 +69,43 @@
       <p class="text-xs text-gray-500 mt-1">AI가 최적의 유세 경로를 설계합니다</p>
     </div>
 
+    <!-- 선거 유형 -->
+    <div class="px-5 py-4 border-b border-gray-100">
+      <h2 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1.5">
+        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        선거 유형
+      </h2>
+      <select id="election-type-select" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+      </select>
+      <div id="election-type-info" class="mt-2 text-xs bg-gray-50 rounded-lg px-3 py-2 hidden">
+        <div class="flex items-center justify-between text-gray-600">
+          <span id="election-scope-text" class="font-medium text-gray-700"></span>
+          <span id="election-vehicle-text" class="text-gray-400"></span>
+        </div>
+        <div class="flex items-center justify-between mt-1 text-gray-500">
+          <span id="election-budget-text"></span>
+          <span id="election-period-text"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 출마 지역 -->
+    <div id="region-section" class="px-5 py-4 border-b border-gray-100">
+      <h2 class="text-sm font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+        <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span id="region-title">출마 지역</span>
+      </h2>
+      <p id="region-desc" class="text-xs text-gray-500 mb-2"></p>
+
+      <!-- 시·도 선택 -->
+      <select id="sido-select" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+      </select>
+
+      <!-- 시·군·구 선택 (district-level 선거만) -->
+      <select id="sigungu-select" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white hidden">
+      </select>
+    </div>
+
     <!-- 출발점 설정 -->
     <div class="px-5 py-4 border-b border-gray-100">
       <h2 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1.5">
@@ -90,10 +127,6 @@
         <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
         유세 거점
       </h2>
-
-      <!-- 시·도 필터 -->
-      <select id="sido-select" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-      </select>
 
       <!-- 구역 필터 -->
       <select id="district-filter" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
@@ -222,6 +255,19 @@ var spotMarkers = [];     // 거점 마커들
 var startMarker = null;   // 출발점 마커
 
 var currentSidoSpots = [];  // 현재 시·도에 해당하는 거점 목록
+var currentElectionType = null; // 현재 선택된 선거 유형
+
+// 선거 유형별 범위 분류
+var ELECTION_SCOPE = {
+  president: 'national',
+  proportional: 'national',
+  metro_governor: 'sido',
+  superintendent: 'sido',
+  national_assembly: 'district',
+  basic_head: 'district',
+  metro_council: 'district',
+  basic_council: 'district'
+};
 
 var VEHICLE_COLORS = ['blue', 'red', 'green', 'orange', 'purple'];
 var VEHICLE_HEX = { blue: '#2563eb', red: '#dc2626', green: '#059669', orange: '#ea580c', purple: '#7c3aed' };
@@ -239,6 +285,91 @@ map.on('click', function(e) {
   if (sel.value === 'custom') {
     setStartPoint({ lat: e.latlng.lat, lng: e.latlng.lng, name: '사용자 지정 출발점' });
   }
+});
+
+/* ── 선거 유형 드롭다운 ── */
+(function populateElectionType() {
+  var sel = document.getElementById('election-type-select');
+  ELECTION_TYPES.forEach(function(et) {
+    var opt = document.createElement('option');
+    opt.value = et.id;
+    opt.textContent = et.icon + ' ' + et.name;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', function() {
+    onElectionTypeChange(this.value);
+  });
+})();
+
+function onElectionTypeChange(typeId) {
+  currentElectionType = ELECTION_TYPES.find(function(e) { return e.id === typeId; });
+  var scope = ELECTION_SCOPE[typeId] || 'national';
+  var infoEl = document.getElementById('election-type-info');
+  var regionSection = document.getElementById('region-section');
+  var sigunguSel = document.getElementById('sigungu-select');
+
+  // 선거 정보 표시
+  if (currentElectionType) {
+    infoEl.classList.remove('hidden');
+    document.getElementById('election-scope-text').textContent = currentElectionType.desc;
+    document.getElementById('election-vehicle-text').textContent = '추천 차량: ' + currentElectionType.recommendVehicles;
+    document.getElementById('election-budget-text').textContent = '선거비용: ' + currentElectionType.budgetText;
+    document.getElementById('election-period-text').textContent = '선거기간: ' + currentElectionType.period;
+  }
+
+  // 출마 지역 섹션 업데이트
+  if (scope === 'national') {
+    document.getElementById('region-title').textContent = '경로 계획 지역';
+    document.getElementById('region-desc').textContent = '전국 단위 선거입니다. 경로를 계획할 시·도를 선택하세요.';
+    sigunguSel.classList.add('hidden');
+  } else if (scope === 'sido') {
+    document.getElementById('region-title').textContent = '출마 지역';
+    document.getElementById('region-desc').textContent = '출마할 시·도를 선택하세요.';
+    sigunguSel.classList.add('hidden');
+  } else {
+    document.getElementById('region-title').textContent = '출마 지역';
+    document.getElementById('region-desc').textContent = '출마할 시·도와 선거구를 선택하세요.';
+    sigunguSel.classList.remove('hidden');
+    // 현재 시·도 기준 시·군·구 갱신
+    updateSigunguSelect(document.getElementById('sido-select').value);
+  }
+
+  // 시·도 변경 트리거 (거점 갱신)
+  var sidoSel = document.getElementById('sido-select');
+  if (sidoSel.value) {
+    onSidoChange(sidoSel.value);
+  }
+}
+
+// 시·군·구 드롭다운 갱신
+function updateSigunguSelect(sido) {
+  var sel = document.getElementById('sigungu-select');
+  sel.innerHTML = '<option value="all">전체 선거구</option>';
+  var districts = getDistrictsBySido(sido);
+  districts.forEach(function(d) {
+    var opt = document.createElement('option');
+    opt.value = d.dong;
+    opt.textContent = d.dong + ' (유권자 ' + (d.voters ? d.voters.toLocaleString() : '-') + '명)';
+    sel.appendChild(opt);
+  });
+}
+
+// 시·군·구 변경 이벤트
+document.getElementById('sigungu-select').addEventListener('change', function() {
+  var dong = this.value;
+  var distFilter = document.getElementById('district-filter');
+  if (dong === 'all') {
+    distFilter.value = 'all';
+  } else {
+    // 해당 구역이 district-filter에 있으면 자동 선택
+    for (var i = 0; i < distFilter.options.length; i++) {
+      if (distFilter.options[i].value === dong) {
+        distFilter.value = dong;
+        break;
+      }
+    }
+  }
+  applySpotCount();
 });
 
 // 시·도 드롭다운 채우기
@@ -278,6 +409,13 @@ function onSidoChange(sido) {
 
   // 선택 초기화
   selectedSpots.clear();
+
+  // 시·군·구 드롭다운 갱신 (district-level 선거 시)
+  var scope = currentElectionType ? (ELECTION_SCOPE[currentElectionType.id] || 'national') : 'national';
+  if (scope === 'district') {
+    updateSigunguSelect(sido);
+    document.getElementById('sigungu-select').value = 'all';
+  }
 
   // 구역 필터 갱신
   var distSel = document.getElementById('district-filter');
@@ -337,8 +475,14 @@ function onSidoChange(sido) {
   }
 }
 
-// 초기 로드: 첫 번째 시·도로 설정
-(function initSido() {
+// 초기 로드: 선거 유형 → 시·도 순서로 설정
+(function initPage_route() {
+  // 선거 유형 기본값 (국회의원 선거)
+  var etSel = document.getElementById('election-type-select');
+  etSel.value = 'national_assembly';
+  onElectionTypeChange('national_assembly');
+
+  // 시·도 기본값
   var sidoSel = document.getElementById('sido-select');
   if (sidoSel.options.length > 0) {
     onSidoChange(sidoSel.options[0].value);
