@@ -28,11 +28,18 @@
   .spot-item { transition: all 0.15s ease; }
   .spot-item:hover { background: #eff6ff; }
   .spot-item.checked { background: #eff6ff; border-color: #93c5fd; }
-  .bottom-panel { position: absolute; bottom: 0; left: 0; right: 0; z-index: 1000;
+  .bottom-toggle-bar { position: absolute; bottom: 0; left: 0; right: 0; z-index: 1001;
+    height: 22px; background: #1e293b; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background 0.15s ease, bottom 0.4s cubic-bezier(0.16,1,0.3,1); }
+  .bottom-toggle-bar:hover { background: #334155; }
+  .bottom-toggle-bar svg { transition: transform 0.3s ease; }
+  .bottom-toggle-bar.panel-open { bottom: 0; }
+  .bottom-panel { position: absolute; bottom: 22px; left: 0; right: 0; z-index: 1000;
     background: white; border-top: 2px solid #e2e8f0; border-radius: 16px 16px 0 0;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.12); max-height: 50%; overflow: hidden;
-    transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); }
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.12); max-height: 48%; overflow: hidden;
+    transform: translateY(calc(100% + 22px)); transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); }
   .bottom-panel.show { transform: translateY(0); }
+  .bottom-toggle-bar.panel-open { transition: bottom 0.4s cubic-bezier(0.16,1,0.3,1); }
   .bottom-panel-inner { overflow-y: auto; max-height: calc(50vh - 56px); }
   .tab-btn { transition: all 0.15s ease; }
   .tab-btn.active { color: #2563eb; border-color: #2563eb; background: #eff6ff; }
@@ -255,6 +262,11 @@
   <!-- Map Area -->
   <div id="map-container">
     <div id="map"></div>
+
+    <!-- Bottom Toggle Bar -->
+    <div id="bottom-toggle-bar" class="bottom-toggle-bar hidden" onclick="toggleBottomPanel()">
+      <svg id="bottom-toggle-icon" class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"/></svg>
+    </div>
 
     <!-- Bottom Panel (results) -->
     <div id="bottom-panel" class="bottom-panel">
@@ -1154,15 +1166,46 @@ function showResultTab(tabId, btnEl) {
 
 /* ── 하단 패널 토글 ── */
 function showBottomPanel() {
-  document.getElementById('bottom-panel').classList.add('show');
+  var panel = document.getElementById('bottom-panel');
+  var bar = document.getElementById('bottom-toggle-bar');
+  var icon = document.getElementById('bottom-toggle-icon');
+  panel.classList.add('show');
+  bar.classList.remove('hidden');
+  bar.classList.add('panel-open');
+  icon.style.transform = 'rotate(180deg)';
+  updateBottomBarPosition();
 }
 
 function hideBottomPanel() {
-  document.getElementById('bottom-panel').classList.remove('show');
+  var panel = document.getElementById('bottom-panel');
+  var icon = document.getElementById('bottom-toggle-icon');
+  var bar = document.getElementById('bottom-toggle-bar');
+  panel.classList.remove('show');
+  bar.classList.remove('panel-open');
+  icon.style.transform = 'rotate(0deg)';
+  bar.style.bottom = '0px';
 }
 
 function toggleBottomPanel() {
-  document.getElementById('bottom-panel').classList.toggle('show');
+  var panel = document.getElementById('bottom-panel');
+  var isOpen = panel.classList.contains('show');
+  if (isOpen) {
+    hideBottomPanel();
+  } else {
+    showBottomPanel();
+  }
+}
+
+function updateBottomBarPosition() {
+  var panel = document.getElementById('bottom-panel');
+  var bar = document.getElementById('bottom-toggle-bar');
+  if (panel.classList.contains('show')) {
+    // 패널 높이만큼 바를 위로 이동
+    setTimeout(function() {
+      var h = panel.offsetHeight;
+      bar.style.bottom = h + 'px';
+    }, 50);
+  }
 }
 
 /* ── 차량 경로 상세보기 팝업 ── */
