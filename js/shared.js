@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   일렉트맵AI — shared.js (공통 유틸·헤더·푸터)
+   일렉션맵AI — shared.js (공통 유틸·헤더·푸터)
    ═══════════════════════════════════════════ */
 
 /* ── 유틸리티 ── */
@@ -32,7 +32,7 @@ function renderHeader(active) {
 <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
 <a href="index.html" class="flex items-center gap-2 shrink-0">
 <div class="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg></div>
-<span class="font-bold text-lg text-gray-900">일렉트맵<span class="text-blue-600">AI</span></span>
+<span class="font-bold text-lg text-gray-900">일렉션맵<span class="text-blue-600">AI</span></span>
 </a>
 <nav class="hidden xl:flex items-center gap-1">${nav.map(n =>
     `<a href="${n.href}" class="px-3 py-2 rounded-lg text-sm font-medium transition ${active === n.key ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'}">${n.label}</a>`
@@ -61,7 +61,7 @@ function renderFooter() {
 <div class="max-w-7xl mx-auto px-6">
 <div class="grid md:grid-cols-4 gap-10">
 <div>
-<div class="flex items-center gap-2 mb-4"><div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg></div><span class="text-white font-bold">일렉트맵AI</span></div>
+<div class="flex items-center gap-2 mb-4"><div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg></div><span class="text-white font-bold">일렉션맵AI</span></div>
 <p class="text-sm leading-relaxed">데이터 기반 AI 선거 전략 플랫폼.<br>선거 차량 최적화부터 유세 전략까지.</p>
 </div>
 <div>
@@ -78,7 +78,7 @@ function renderFooter() {
 </div>
 </div>
 <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-<p>&copy; 2026 일렉트맵AI. All rights reserved.</p>
+<p>&copy; 2026 일렉션맵AI. All rights reserved.</p>
 <p>2026 지방선거 D-${Math.max(0, Math.ceil((new Date('2026-06-03') - new Date()) / 86400000))}일</p>
 </div>
 </div>

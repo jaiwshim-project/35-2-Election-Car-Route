@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   일렉트맵AI — chart-helpers.js (Chart.js 헬퍼)
+   일렉션맵AI — chart-helpers.js (Chart.js 헬퍼)
    ═══════════════════════════════════════════ */
 
 const CHART_COLORS = {
