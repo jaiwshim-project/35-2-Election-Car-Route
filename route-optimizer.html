@@ -100,11 +100,15 @@
         <option value="all">전체 구역</option>
       </select>
 
-      <!-- 선택 버튼들 -->
-      <div class="flex gap-2 mb-3">
-        <button onclick="selectAllSpots()" class="flex-1 text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition">전체 선택</button>
-        <button onclick="selectRecommendedSpots()" class="flex-1 text-xs font-medium bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 rounded-lg transition">추천 거점만</button>
-        <button onclick="clearAllSpots()" class="flex-1 text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition">선택 해제</button>
+      <!-- 거점 개수 입력 -->
+      <div class="mb-3">
+        <label class="text-xs text-gray-600 block mb-1.5">사용할 거점 수</label>
+        <div class="flex items-center gap-2">
+          <button onclick="changeSpotCount(-1)" class="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition text-lg font-bold">&minus;</button>
+          <input type="number" id="spot-count-input" min="1" value="5" class="w-16 text-center text-xl font-bold text-blue-600 border border-gray-200 rounded-lg py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="onSpotCountChange()">
+          <button onclick="changeSpotCount(1)" class="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition text-lg font-bold">+</button>
+          <span id="spot-max-label" class="text-xs text-gray-400 ml-1">/ 전체 0개</span>
+        </div>
       </div>
 
       <!-- 거점 수 -->
@@ -265,7 +269,7 @@ document.getElementById('start-point-select').addEventListener('change', functio
 });
 
 // 구역 필터 이벤트
-document.getElementById('district-filter').addEventListener('change', function() { renderSpotList(); });
+document.getElementById('district-filter').addEventListener('change', function() { applySpotCount(); });
 
 // 시·도 변경 시: 구역 필터, 출발점, 거점 목록 모두 갱신
 function onSidoChange(sido) {
@@ -314,10 +318,17 @@ function onSidoChange(sido) {
     clearStartMarker();
   }
 
-  // 거점 목록 & 마커 갱신
-  renderSpotList();
-  updateSpotCount();
-  renderSpotMarkers();
+  // 거점 개수 입력란의 max와 기본값을 해당 시·도 거점 수에 맞게 설정
+  var totalSpots = currentSidoSpots.length;
+  var input = document.getElementById('spot-count-input');
+  input.max = totalSpots;
+  // 기본값: 전체 거점의 절반 (최소 2, 최대 전체)
+  var defaultCount = Math.max(2, Math.min(Math.round(totalSpots / 2), totalSpots));
+  input.value = defaultCount;
+  document.getElementById('spot-max-label').textContent = '/ 전체 ' + totalSpots + '개';
+
+  // 거점 목록 & 마커 갱신 (개수 기반 자동 선택 포함)
+  applySpotCount();
 
   // 지도 뷰를 해당 시·도 거점이 보이도록 이동
   if (currentSidoSpots.length > 0) {
@@ -363,11 +374,19 @@ function hideStartInfo() {
 /* ── 거점 목록 ── */
 function renderSpotList() {
   var filter = document.getElementById('district-filter').value;
-  var spots = currentSidoSpots;
+  var spots = currentSidoSpots.slice();
   if (filter !== 'all') {
     spots = spots.filter(function(s) { return s.district === filter; });
   }
-  document.getElementById('spot-total').textContent = '전체 ' + spots.length + '개';
+
+  // 유권자 도달 수 기준 내림차순 정렬
+  spots.sort(function(a, b) { return b.voterReach - a.voterReach; });
+
+  // 입력된 개수만큼만 표시
+  var count = parseInt(document.getElementById('spot-count-input').value) || spots.length;
+  spots = spots.slice(0, count);
+
+  document.getElementById('spot-total').textContent = '표시 ' + spots.length + '개';
 
   var html = '';
   spots.forEach(function(spot) {
@@ -404,32 +423,47 @@ function toggleSpot(spotId, checked) {
   renderSpotMarkers();
 }
 
-function selectAllSpots() {
-  var filter = document.getElementById('district-filter').value;
-  var spots = currentSidoSpots;
-  if (filter !== 'all') spots = spots.filter(function(s) { return s.district === filter; });
-  spots.forEach(function(s) { selectedSpots.add(s.id); });
-  updateSpotCount();
-  renderSpotList();
-  renderSpotMarkers();
+/* ── 거점 개수 조절 ── */
+function changeSpotCount(delta) {
+  var input = document.getElementById('spot-count-input');
+  var max = parseInt(input.max) || currentSidoSpots.length;
+  var newVal = Math.max(1, Math.min(max, parseInt(input.value || 0) + delta));
+  input.value = newVal;
+  applySpotCount();
 }
 
-function selectRecommendedSpots() {
-  // 추천: voterReach 6000 이상인 거점만
-  clearAllSpots();
-  var filter = document.getElementById('district-filter').value;
-  var spots = currentSidoSpots;
-  if (filter !== 'all') spots = spots.filter(function(s) { return s.district === filter; });
-  spots.forEach(function(s) {
-    if (s.voterReach >= 6000) selectedSpots.add(s.id);
-  });
-  updateSpotCount();
-  renderSpotList();
-  renderSpotMarkers();
+function onSpotCountChange() {
+  var input = document.getElementById('spot-count-input');
+  var max = parseInt(input.max) || currentSidoSpots.length;
+  var val = parseInt(input.value);
+  if (isNaN(val) || val < 1) val = 1;
+  if (val > max) val = max;
+  input.value = val;
+  applySpotCount();
 }
 
-function clearAllSpots() {
+// 입력된 개수만큼 상위 거점을 선택하고 목록을 갱신
+function applySpotCount() {
+  var input = document.getElementById('spot-count-input');
+  var count = parseInt(input.value) || 1;
+  var filter = document.getElementById('district-filter').value;
+
+  // 구역 필터 적용된 거점 가져오기
+  var spots = currentSidoSpots.slice();
+  if (filter !== 'all') {
+    spots = spots.filter(function(s) { return s.district === filter; });
+  }
+
+  // 유권자 도달 수 기준 내림차순 정렬
+  spots.sort(function(a, b) { return b.voterReach - a.voterReach; });
+
+  // 입력 개수만큼만 자르기
+  var topSpots = spots.slice(0, count);
+
+  // 선택 초기화 후 상위 거점만 자동 선택
   selectedSpots.clear();
+  topSpots.forEach(function(s) { selectedSpots.add(s.id); });
+
   updateSpotCount();
   renderSpotList();
   renderSpotMarkers();
