@@ -48,6 +48,10 @@
   .type-관광 { background: #fef9c3; color: #854d0e; }
   .type-대학교 { background: #ede9fe; color: #5b21b6; }
   .type-공원 { background: #dcfce7; color: #166534; }
+  .subtype-btn { padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    border: 1.5px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; transition: all 0.15s ease; }
+  .subtype-btn:hover { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+  .subtype-btn.active { border-color: #2563eb; background: #2563eb; color: white; }
 </style>
 </head>
 <body class="antialiased bg-white text-gray-900">
@@ -77,6 +81,13 @@
       </h2>
       <select id="election-type-select" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
       </select>
+
+      <!-- 세부 유형 버튼 -->
+      <div id="election-subtype-wrap" class="mt-2 hidden">
+        <label class="text-xs text-gray-600 block mb-1.5">세부 유형</label>
+        <div id="election-subtype-btns" class="flex flex-wrap gap-1.5"></div>
+      </div>
+
       <div id="election-type-info" class="mt-2 text-xs bg-gray-50 rounded-lg px-3 py-2 hidden">
         <div class="flex items-center justify-between text-gray-600">
           <span id="election-scope-text" class="font-medium text-gray-700"></span>
@@ -269,6 +280,33 @@ var ELECTION_SCOPE = {
   basic_council: 'district'
 };
 
+// 선거 유형별 세부 분류
+var ELECTION_SUBTYPES = {
+  metro_governor: [
+    { id: 'metro_mayor', name: '시장', desc: '특별시·광역시·특별자치시장', sidoFilter: function(s) { return s.endsWith('시'); } },
+    { id: 'governor', name: '도지사', desc: '도·특별자치도지사', sidoFilter: function(s) { return s.endsWith('도'); } }
+  ],
+  basic_head: [
+    { id: 'city_mayor', name: '시장', desc: '시장 선거' },
+    { id: 'county_head', name: '군수', desc: '군수 선거' },
+    { id: 'district_head', name: '구청장', desc: '구청장 선거' }
+  ],
+  national_assembly: [
+    { id: 'district_rep', name: '지역구', desc: '지역구 국회의원', scope: 'district' },
+    { id: 'proportional_rep', name: '비례대표', desc: '비례대표 국회의원', scope: 'national' }
+  ],
+  metro_council: [
+    { id: 'district_metro', name: '지역구', desc: '지역구 광역의원', scope: 'district' },
+    { id: 'proportional_metro', name: '비례대표', desc: '비례대표 광역의원', scope: 'national' }
+  ],
+  basic_council: [
+    { id: 'district_basic', name: '지역구', desc: '지역구 기초의원', scope: 'district' },
+    { id: 'proportional_basic', name: '비례대표', desc: '비례대표 기초의원', scope: 'national' }
+  ]
+};
+
+var currentSubtype = null;  // 현재 선택된 세부 유형
+
 var VEHICLE_COLORS = ['blue', 'red', 'green', 'orange', 'purple'];
 var VEHICLE_HEX = { blue: '#2563eb', red: '#dc2626', green: '#059669', orange: '#ea580c', purple: '#7c3aed' };
 var VEHICLE_NAMES = ['차량 1', '차량 2', '차량 3', '차량 4', '차량 5'];
@@ -303,9 +341,9 @@ map.on('click', function(e) {
 
 function onElectionTypeChange(typeId) {
   currentElectionType = ELECTION_TYPES.find(function(e) { return e.id === typeId; });
+  currentSubtype = null;
   var scope = ELECTION_SCOPE[typeId] || 'national';
   var infoEl = document.getElementById('election-type-info');
-  var regionSection = document.getElementById('region-section');
   var sigunguSel = document.getElementById('sigungu-select');
 
   // 선거 정보 표시
@@ -317,7 +355,82 @@ function onElectionTypeChange(typeId) {
     document.getElementById('election-period-text').textContent = '선거기간: ' + currentElectionType.period;
   }
 
+  // 세부 유형 버튼 렌더링
+  renderSubtypeButtons(typeId);
+
   // 출마 지역 섹션 업데이트
+  updateRegionSection(scope);
+
+  // 시·도 필터 갱신 (세부 유형에 따른 필터 없이 전체)
+  filterSidoOptions(null);
+
+  // 시·도 변경 트리거 (거점 갱신)
+  var sidoSel = document.getElementById('sido-select');
+  if (sidoSel.value) {
+    onSidoChange(sidoSel.value);
+  }
+}
+
+// 세부 유형 버튼 렌더링
+function renderSubtypeButtons(typeId) {
+  var wrap = document.getElementById('election-subtype-wrap');
+  var btnsEl = document.getElementById('election-subtype-btns');
+  var subtypes = ELECTION_SUBTYPES[typeId];
+
+  if (!subtypes || subtypes.length === 0) {
+    wrap.classList.add('hidden');
+    btnsEl.innerHTML = '';
+    return;
+  }
+
+  wrap.classList.remove('hidden');
+  var html = '';
+  subtypes.forEach(function(st) {
+    html += '<button class="subtype-btn" data-subtype-id="' + st.id + '" ' +
+      'onclick="selectSubtype(\'' + typeId + '\', \'' + st.id + '\', this)" ' +
+      'title="' + st.desc + '">' + st.name + '</button>';
+  });
+  btnsEl.innerHTML = html;
+}
+
+// 세부 유형 선택
+function selectSubtype(typeId, subtypeId, btnEl) {
+  var subtypes = ELECTION_SUBTYPES[typeId];
+  if (!subtypes) return;
+  currentSubtype = subtypes.find(function(st) { return st.id === subtypeId; });
+
+  // 버튼 활성화
+  var allBtns = document.querySelectorAll('#election-subtype-btns .subtype-btn');
+  allBtns.forEach(function(b) { b.classList.remove('active'); });
+  btnEl.classList.add('active');
+
+  // 세부 유형에 scope 오버라이드가 있으면 적용
+  var scope = ELECTION_SCOPE[typeId] || 'national';
+  if (currentSubtype && currentSubtype.scope) {
+    scope = currentSubtype.scope;
+  }
+
+  // 출마 지역 섹션 업데이트
+  updateRegionSection(scope);
+
+  // 시·도 필터 적용 (광역단체장 시장/도지사 등)
+  if (currentSubtype && currentSubtype.sidoFilter) {
+    filterSidoOptions(currentSubtype.sidoFilter);
+  } else {
+    filterSidoOptions(null);
+  }
+
+  // 시·도 변경 트리거
+  var sidoSel = document.getElementById('sido-select');
+  if (sidoSel.value) {
+    onSidoChange(sidoSel.value);
+  }
+}
+
+// 출마 지역 섹션 UI 업데이트
+function updateRegionSection(scope) {
+  var sigunguSel = document.getElementById('sigungu-select');
+
   if (scope === 'national') {
     document.getElementById('region-title').textContent = '경로 계획 지역';
     document.getElementById('region-desc').textContent = '전국 단위 선거입니다. 경로를 계획할 시·도를 선택하세요.';
@@ -330,14 +443,32 @@ function onElectionTypeChange(typeId) {
     document.getElementById('region-title').textContent = '출마 지역';
     document.getElementById('region-desc').textContent = '출마할 시·도와 선거구를 선택하세요.';
     sigunguSel.classList.remove('hidden');
-    // 현재 시·도 기준 시·군·구 갱신
     updateSigunguSelect(document.getElementById('sido-select').value);
   }
+}
 
-  // 시·도 변경 트리거 (거점 갱신)
-  var sidoSel = document.getElementById('sido-select');
-  if (sidoSel.value) {
-    onSidoChange(sidoSel.value);
+// 시·도 옵션 필터링 (세부 유형에 따라)
+function filterSidoOptions(filterFn) {
+  var sel = document.getElementById('sido-select');
+  var sidoList = getSidoList();
+  var prevValue = sel.value;
+  sel.innerHTML = '';
+
+  sidoList.forEach(function(sido) {
+    if (filterFn && !filterFn(sido)) return;
+    var opt = document.createElement('option');
+    opt.value = sido;
+    opt.textContent = sido;
+    sel.appendChild(opt);
+  });
+
+  // 이전 선택값이 여전히 있으면 유지, 아니면 첫 번째 옵션
+  var found = false;
+  for (var i = 0; i < sel.options.length; i++) {
+    if (sel.options[i].value === prevValue) { sel.value = prevValue; found = true; break; }
+  }
+  if (!found && sel.options.length > 0) {
+    sel.value = sel.options[0].value;
   }
 }
 
@@ -372,17 +503,10 @@ document.getElementById('sigungu-select').addEventListener('change', function() 
   applySpotCount();
 });
 
-// 시·도 드롭다운 채우기
-(function populateSidoSelect() {
-  var sel = document.getElementById('sido-select');
-  var sidoList = getSidoList();
-  sidoList.forEach(function(sido) {
-    var opt = document.createElement('option');
-    opt.value = sido;
-    opt.textContent = sido;
-    sel.appendChild(opt);
-  });
-  sel.addEventListener('change', function() {
+// 시·도 드롭다운 초기화
+(function initSidoSelect() {
+  filterSidoOptions(null);
+  document.getElementById('sido-select').addEventListener('change', function() {
     onSidoChange(this.value);
   });
 })();
