@@ -12,9 +12,19 @@
 <style>
   #map-container { position: relative; flex: 1; min-height: 0; }
   #map { width: 100%; height: 100%; }
-  .left-panel { width: 380px; min-width: 380px; }
+  .left-panel { width: 340px; min-width: 340px; }
   .left-panel::-webkit-scrollbar { width: 5px; }
   .left-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  .right-panel { width: 380px; min-width: 380px; border-left: 1px solid #e2e8f0;
+    transition: width 0.3s ease, min-width 0.3s ease, opacity 0.3s ease; overflow: hidden; }
+  .right-panel.collapsed { width: 0; min-width: 0; opacity: 0; pointer-events: none; }
+  .right-panel::-webkit-scrollbar { width: 5px; }
+  .right-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  .right-toggle-btn { position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+    z-index: 500; background: white; border: 1px solid #e2e8f0; border-right: none;
+    border-radius: 8px 0 0 8px; padding: 8px 4px; cursor: pointer; box-shadow: -2px 0 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease; }
+  .right-toggle-btn:hover { background: #f1f5f9; }
   .spot-item { transition: all 0.15s ease; }
   .spot-item:hover { background: #eff6ff; }
   .spot-item.checked { background: #eff6ff; border-color: #93c5fd; }
@@ -132,17 +142,18 @@
       </div>
     </div>
 
-    <!-- 유세 거점 -->
-    <div class="px-5 py-4 border-b border-gray-100 flex-1 flex flex-col min-h-0">
-      <h2 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1.5">
-        <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-        유세 거점
-      </h2>
-
-      <!-- 구역 필터 -->
-      <select id="district-filter" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-        <option value="all">전체 구역</option>
-      </select>
+    <!-- 유세 거점 (요약) -->
+    <div class="px-5 py-4 border-b border-gray-100">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          유세 거점
+        </h2>
+        <button onclick="toggleRightPanel()" class="text-xs font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1 transition">
+          <span id="right-panel-toggle-text">상세 보기</span>
+          <svg id="right-panel-toggle-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
 
       <!-- 거점 개수 입력 -->
       <div class="mb-3">
@@ -155,14 +166,11 @@
         </div>
       </div>
 
-      <!-- 거점 수 -->
-      <div class="text-xs text-gray-500 mb-2 flex items-center justify-between">
+      <!-- 거점 수 요약 -->
+      <div class="text-xs text-gray-500 flex items-center justify-between">
         <span id="spot-count">0개 거점 선택됨</span>
         <span id="spot-total" class="text-gray-400"></span>
       </div>
-
-      <!-- 거점 목록 -->
-      <div id="spot-list" class="flex-1 overflow-y-auto space-y-1.5 pr-1" style="max-height: 280px;"></div>
     </div>
 
     <!-- 차량 설정 -->
@@ -177,9 +185,9 @@
           <label class="text-xs text-gray-600 block mb-1.5">차량 수</label>
           <div class="flex items-center gap-2">
             <button onclick="changeVehicleCount(-1)" class="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition text-lg font-bold">&minus;</button>
-            <span id="vehicle-count" class="text-xl font-bold text-blue-600 w-10 text-center">2</span>
+            <input type="number" id="vehicle-count" min="1" value="2" class="w-16 text-center text-xl font-bold text-blue-600 border border-gray-200 rounded-lg py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="onVehicleCountChange()">
             <button onclick="changeVehicleCount(1)" class="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition text-lg font-bold">+</button>
-            <span class="text-xs text-gray-400 ml-1">대 (최대 5대)</span>
+            <span class="text-xs text-gray-400 ml-1">대</span>
           </div>
         </div>
         <!-- 운영 시간 -->
@@ -233,6 +241,11 @@
   <div id="map-container">
     <div id="map"></div>
 
+    <!-- Right Panel Toggle Button -->
+    <button id="right-toggle-btn" class="right-toggle-btn panel-open" onclick="toggleRightPanel()" title="거점 상세 패널 토글">
+      <svg id="toggle-arrow" class="w-4 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    </button>
+
     <!-- Bottom Panel (results) -->
     <div id="bottom-panel" class="bottom-panel">
       <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50/80">
@@ -243,6 +256,38 @@
       </div>
       <div class="bottom-panel-inner" id="result-content"></div>
     </div>
+  </div>
+
+  <!-- Right Panel (거점 상세) -->
+  <div id="right-panel" class="right-panel bg-white flex flex-col overflow-y-auto">
+
+    <!-- 패널 헤더 -->
+    <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/80">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold text-gray-900 flex items-center gap-2">
+          <svg class="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+          거점 상세 목록
+        </h2>
+        <button onclick="toggleRightPanel()" class="text-gray-400 hover:text-gray-600 p-1" title="패널 닫기">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p class="text-xs text-gray-500 mt-1">유권자 도달 수 기준 상위 거점이 자동 선택됩니다</p>
+    </div>
+
+    <!-- 구역 필터 -->
+    <div class="px-5 py-3 border-b border-gray-100">
+      <label class="text-xs text-gray-600 block mb-1.5">구역 필터</label>
+      <select id="district-filter" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <option value="all">전체 구역</option>
+      </select>
+    </div>
+
+    <!-- 거점 목록 -->
+    <div class="flex-1 overflow-y-auto px-5 py-3">
+      <div id="spot-list" class="space-y-1.5"></div>
+    </div>
+
   </div>
 </div>
 
@@ -307,9 +352,16 @@ var ELECTION_SUBTYPES = {
 
 var currentSubtype = null;  // 현재 선택된 세부 유형
 
-var VEHICLE_COLORS = ['blue', 'red', 'green', 'orange', 'purple'];
-var VEHICLE_HEX = { blue: '#2563eb', red: '#dc2626', green: '#059669', orange: '#ea580c', purple: '#7c3aed' };
-var VEHICLE_NAMES = ['차량 1', '차량 2', '차량 3', '차량 4', '차량 5'];
+var VEHICLE_COLORS = ['blue', 'red', 'green', 'orange', 'purple', 'pink', 'cyan', 'lime', 'amber', 'indigo'];
+var VEHICLE_HEX = { blue: '#2563eb', red: '#dc2626', green: '#059669', orange: '#ea580c', purple: '#7c3aed', pink: '#db2777', cyan: '#0891b2', lime: '#65a30d', amber: '#d97706', indigo: '#4f46e5' };
+
+// 차량 이름 동적 생성
+function getVehicleName(idx) {
+  return '차량 ' + (idx + 1);
+}
+// 기존 호환용
+var VEHICLE_NAMES = [];
+for (var _vi = 0; _vi < 100; _vi++) VEHICLE_NAMES.push('차량 ' + (_vi + 1));
 
 /* ── 초기화 ── */
 initPage('route');
@@ -777,8 +829,37 @@ function renderSpotMarkers() {
 
 /* ── 차량 수 변경 ── */
 function changeVehicleCount(delta) {
-  vehicleCount = Math.max(1, Math.min(5, vehicleCount + delta));
-  document.getElementById('vehicle-count').textContent = vehicleCount;
+  var input = document.getElementById('vehicle-count');
+  vehicleCount = Math.max(1, parseInt(input.value || 1) + delta);
+  input.value = vehicleCount;
+}
+
+function onVehicleCountChange() {
+  var input = document.getElementById('vehicle-count');
+  var val = parseInt(input.value);
+  if (isNaN(val) || val < 1) val = 1;
+  vehicleCount = val;
+  input.value = vehicleCount;
+}
+
+/* ── 오른쪽 패널 토글 ── */
+function toggleRightPanel() {
+  var panel = document.getElementById('right-panel');
+  var btn = document.getElementById('right-toggle-btn');
+  var arrow = document.getElementById('toggle-arrow');
+  var toggleText = document.getElementById('right-panel-toggle-text');
+  var toggleIcon = document.getElementById('right-panel-toggle-icon');
+
+  panel.classList.toggle('collapsed');
+
+  var isOpen = !panel.classList.contains('collapsed');
+  btn.classList.toggle('panel-open', isOpen);
+  arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+  toggleText.textContent = isOpen ? '상세 닫기' : '상세 보기';
+  toggleIcon.style.transform = isOpen ? '' : 'rotate(180deg)';
+
+  // 지도 리사이즈
+  setTimeout(function() { map.invalidateSize(); }, 350);
 }
 
 /* ── 경로 최적화 실행 ── */
@@ -807,6 +888,7 @@ async function runOptimization() {
   try {
     // 선택된 거점 모으기
     var spots = currentSidoSpots.filter(function(s) { return selectedSpots.has(s.id); });
+    vehicleCount = parseInt(document.getElementById('vehicle-count').value) || 1;
     var numVehicles = Math.min(vehicleCount, spots.length);
     var startTime = document.getElementById('start-time').value;
 

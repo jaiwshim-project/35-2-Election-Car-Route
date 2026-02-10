@@ -269,7 +269,7 @@ function vehicleRoutePlan(spots, numVehicles, startPoint) {
   var clusters = geoKMeans(spots, numVehicles, 50);
 
   // 2. 각 클러스터별 TSP 풀기
-  var vehicleColors = ['blue', 'red', 'green', 'orange', 'purple'];
+  var vehicleColors = ['blue', 'red', 'green', 'orange', 'purple', 'pink', 'cyan', 'lime', 'amber', 'indigo'];
   var results = [];
 
   for (var v = 0; v < clusters.length; v++) {
