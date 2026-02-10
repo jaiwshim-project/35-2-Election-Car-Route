@@ -240,10 +240,10 @@
       <div class="flex items-center justify-between">
         <h2 class="text-base font-bold text-gray-900 flex items-center gap-2">
           <svg class="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-          거점 상세 목록
+          유세 거점 상세목록
         </h2>
-        <button onclick="toggleRightPanel()" class="text-gray-400 hover:text-gray-600 p-1" title="패널 닫기">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        <button onclick="toggleRightPanel()" class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition" title="패널 접기/펼치기">
+          <svg id="right-panel-header-icon" class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </button>
       </div>
       <p class="text-xs text-gray-500 mt-1">유권자 도달 수 기준 상위 거점이 자동 선택됩니다</p>
@@ -830,12 +830,14 @@ function toggleRightPanel() {
   var panel = document.getElementById('right-panel');
   var toggleText = document.getElementById('right-panel-toggle-text');
   var toggleIcon = document.getElementById('right-panel-toggle-icon');
+  var headerIcon = document.getElementById('right-panel-header-icon');
 
   panel.classList.toggle('collapsed');
 
   var isOpen = !panel.classList.contains('collapsed');
   toggleText.textContent = isOpen ? '상세 닫기' : '상세 보기';
   toggleIcon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+  if (headerIcon) headerIcon.style.transform = isOpen ? '' : 'rotate(180deg)';
 
   // 지도 리사이즈
   setTimeout(function() { map.invalidateSize(); }, 350);
