@@ -89,7 +89,12 @@ function renderFooter() {
 function initPage(activeKey) {
   const header = document.getElementById('app-header');
   const footer = document.getElementById('app-footer');
-  if (header) header.innerHTML = renderHeader(activeKey);
+  if (header) {
+    header.innerHTML = renderHeader(activeKey);
+    header.style.position = 'sticky';
+    header.style.top = '0';
+    header.style.zIndex = '50';
+  }
   if (footer) footer.innerHTML = renderFooter();
 }
 
