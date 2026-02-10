@@ -718,7 +718,8 @@ function toggleRouteOverlay() {
     if (currentDistrict) {
       spots = getSpotsForDistrict(currentDistrict);
     } else {
-      spots = CAMPAIGN_SPOTS.slice(0, 20); // 전체 시 너무 많으면 상위 20개
+      // 전체 보기: voterReach 높은 순 정렬 후 상위 20개
+      spots = CAMPAIGN_SPOTS.slice().sort(function(a, b) { return b.voterReach - a.voterReach; }).slice(0, 20);
     }
 
     if (spots.length < 2) {
@@ -728,7 +729,7 @@ function toggleRouteOverlay() {
       return;
     }
 
-    // voterReach 높은 순 정렬 후 상위 선택
+    // voterReach 높은 순 정렬
     spots = spots.slice().sort(function(a, b) { return b.voterReach - a.voterReach; });
 
     // 출발점: 첫 번째(가장 유권자 많은) 거점
@@ -748,12 +749,13 @@ function toggleRouteOverlay() {
     plan.forEach(function(vehicle, vIdx) {
       var color = vehicleColors[vIdx % vehicleColors.length];
 
-      // 경로 폴리라인 생성
+      // 경로 폴리라인 생성: route에서 -1(출발점)을 제외한 거점 인덱스만 추출
+      var spotIndices = vehicle.route.filter(function(idx) { return idx >= 0; });
       var routeCoords = [];
       // 출발점 → 각 거점 → 복귀
       routeCoords.push([startPoint.lat, startPoint.lng]);
-      vehicle.route.forEach(function(spotIdx) {
-        routeCoords.push([spots[spotIdx].lat, spots[spotIdx].lng]);
+      spotIndices.forEach(function(spotIdx) {
+        if (spots[spotIdx]) routeCoords.push([spots[spotIdx].lat, spots[spotIdx].lng]);
       });
       routeCoords.push([startPoint.lat, startPoint.lng]);
 
@@ -770,8 +772,9 @@ function toggleRouteOverlay() {
       routeLayerGroup.addLayer(innerLine);
 
       // 경유지 번호 마커
-      vehicle.route.forEach(function(spotIdx, order) {
+      spotIndices.forEach(function(spotIdx, order) {
         var s = spots[spotIdx];
+        if (!s) return;
         var icon = L.divIcon({
           className: '',
           html: '<div style="background:' + color + ';color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid white;box-shadow:0 1px 6px rgba(0,0,0,0.35);">' + (order + 1) + '</div>',
@@ -794,9 +797,9 @@ function toggleRouteOverlay() {
         routeLayerGroup.addLayer(sm);
       }
 
-      // 정보 카드
-      var vehicleSpots = vehicle.route.map(function(idx) { return spots[idx]; });
-      var totalReach = vehicleSpots.reduce(function(s, sp) { return s + sp.voterReach; }, 0);
+      // 정보 카드: -1(출발점) 제외한 거점만
+      var vehicleSpots = spotIndices.map(function(idx) { return spots[idx]; }).filter(Boolean);
+      var totalReach = vehicleSpots.reduce(function(s, sp) { return s + (sp.voterReach || 0); }, 0);
       routeInfoHtml +=
         '<div class="bg-white rounded-lg border border-gray-200 p-3">' +
         '<div class="flex items-center gap-2 mb-2">' +
@@ -804,9 +807,9 @@ function toggleRouteOverlay() {
         '<span class="text-sm font-bold text-gray-800">' + vehicleNames[vIdx] + '</span>' +
         '</div>' +
         '<div class="grid grid-cols-2 gap-2 text-[11px]">' +
-        '<div><span class="text-gray-500">거점:</span> <b>' + vehicle.route.length + '곳</b></div>' +
+        '<div><span class="text-gray-500">거점:</span> <b>' + spotIndices.length + '곳</b></div>' +
         '<div><span class="text-gray-500">거리:</span> <b>' + vehicle.totalDistance.toFixed(1) + 'km</b></div>' +
-        '<div><span class="text-gray-500">시간:</span> <b>' + (vehicle.estimatedTime * 60).toFixed(0) + '분</b></div>' +
+        '<div><span class="text-gray-500">시간:</span> <b>' + vehicle.estimatedTime + '분</b></div>' +
         '<div><span class="text-gray-500">유권자:</span> <b class="text-blue-600">' + fmt(totalReach) + '명</b></div>' +
         '</div>' +
         '<div class="mt-2 text-[10px] text-gray-400">순서: ' + vehicleSpots.map(function(sp) { return sp.name; }).join(' → ') + '</div>' +
