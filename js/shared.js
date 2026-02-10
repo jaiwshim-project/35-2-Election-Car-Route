@@ -85,20 +85,10 @@ function renderFooter() {
 </footer>`;
 }
 
-/* ── 테스트 배너 ── */
-function renderTestBanner() {
-  return `<div class="bg-blue-600 text-white text-center py-2.5 text-sm font-medium">
-<span class="inline-flex items-center gap-2"><span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> 테스트 모드 — 로그인 없이 모든 분석 기능을 체험하세요</span>
-&nbsp;|&nbsp; <a href="dashboard.html" class="underline font-bold hover:text-blue-100">바로 분석 시작 &rarr;</a>
-</div>`;
-}
-
 /* ── 페이지 초기화 ── */
 function initPage(activeKey) {
-  const banner = document.getElementById('test-banner');
   const header = document.getElementById('app-header');
   const footer = document.getElementById('app-footer');
-  if (banner) banner.innerHTML = renderTestBanner();
   if (header) header.innerHTML = renderHeader(activeKey);
   if (footer) footer.innerHTML = renderFooter();
 }
