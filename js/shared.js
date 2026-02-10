@@ -28,7 +28,7 @@ function renderHeader(active) {
     { href: 'simulation.html', label: '시뮬레이션', key: 'simulation' },
     { href: 'pricing.html', label: '요금제', key: 'pricing' }
   ];
-  return `<header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100">
+  return `<header class="sticky top-0 z-50 bg-sky-100/90 backdrop-blur border-b border-sky-200">
 <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
 <a href="index.html" class="flex items-center gap-2 shrink-0">
 <div class="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg></div>
