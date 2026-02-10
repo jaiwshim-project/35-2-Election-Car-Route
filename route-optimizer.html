@@ -91,6 +91,10 @@
         유세 거점
       </h2>
 
+      <!-- 시·도 필터 -->
+      <select id="sido-select" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+      </select>
+
       <!-- 구역 필터 -->
       <select id="district-filter" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
         <option value="all">전체 구역</option>
@@ -213,6 +217,8 @@ var mapLayers = [];       // 현재 지도에 추가된 레이어들
 var spotMarkers = [];     // 거점 마커들
 var startMarker = null;   // 출발점 마커
 
+var currentSidoSpots = [];  // 현재 시·도에 해당하는 거점 목록
+
 var VEHICLE_COLORS = ['blue', 'red', 'green', 'orange', 'purple'];
 var VEHICLE_HEX = { blue: '#2563eb', red: '#dc2626', green: '#059669', orange: '#ea580c', purple: '#7c3aed' };
 var VEHICLE_NAMES = ['차량 1', '차량 2', '차량 3', '차량 4', '차량 5'];
@@ -221,7 +227,7 @@ var VEHICLE_NAMES = ['차량 1', '차량 2', '차량 3', '차량 4', '차량 5']
 initPage('route');
 
 // 지도 초기화
-map = initMap('map', [37.2636, 127.0286], 12);
+map = initMap('map', [36.5, 127.8], 7);
 
 // 지도 클릭 시 출발점 설정
 map.on('click', function(e) {
@@ -231,36 +237,49 @@ map.on('click', function(e) {
   }
 });
 
-// 출발점 드롭다운 채우기
-(function populateStartSelect() {
-  var sel = document.getElementById('start-point-select');
-  CAMPAIGN_SPOTS.forEach(function(spot) {
+// 시·도 드롭다운 채우기
+(function populateSidoSelect() {
+  var sel = document.getElementById('sido-select');
+  var sidoList = getSidoList();
+  sidoList.forEach(function(sido) {
     var opt = document.createElement('option');
-    opt.value = spot.id;
-    opt.textContent = spot.name + ' (' + spot.district + ')';
+    opt.value = sido;
+    opt.textContent = sido;
     sel.appendChild(opt);
   });
   sel.addEventListener('change', function() {
-    if (this.value === 'custom') {
-      startPoint = null;
-      hideStartInfo();
-      clearStartMarker();
-    } else {
-      var spot = CAMPAIGN_SPOTS.find(function(s) { return s.id === parseInt(sel.value); });
-      if (spot) setStartPoint(spot);
-    }
+    onSidoChange(this.value);
   });
-  // 기본 출발점: 수원시청 (id: 12)
-  sel.value = '12';
-  var defaultSpot = CAMPAIGN_SPOTS.find(function(s) { return s.id === 12; });
-  if (defaultSpot) setStartPoint(defaultSpot);
 })();
 
-// 구역 필터 드롭다운 채우기
-(function populateDistrictFilter() {
-  var sel = document.getElementById('district-filter');
+// 출발점 드롭다운 이벤트
+document.getElementById('start-point-select').addEventListener('change', function() {
+  if (this.value === 'custom') {
+    startPoint = null;
+    hideStartInfo();
+    clearStartMarker();
+  } else {
+    var spot = currentSidoSpots.find(function(s) { return s.id === parseInt(this.value); }.bind(this));
+    if (spot) setStartPoint(spot);
+  }
+});
+
+// 구역 필터 이벤트
+document.getElementById('district-filter').addEventListener('change', function() { renderSpotList(); });
+
+// 시·도 변경 시: 구역 필터, 출발점, 거점 목록 모두 갱신
+function onSidoChange(sido) {
+  // 현재 시·도 거점 갱신
+  currentSidoSpots = getSpotsBySido(sido);
+
+  // 선택 초기화
+  selectedSpots.clear();
+
+  // 구역 필터 갱신
+  var distSel = document.getElementById('district-filter');
+  distSel.innerHTML = '<option value="all">전체 구역</option>';
   var districts = [];
-  CAMPAIGN_SPOTS.forEach(function(s) {
+  currentSidoSpots.forEach(function(s) {
     if (districts.indexOf(s.district) === -1) districts.push(s.district);
   });
   districts.sort();
@@ -268,15 +287,52 @@ map.on('click', function(e) {
     var opt = document.createElement('option');
     opt.value = d;
     opt.textContent = d;
-    sel.appendChild(opt);
+    distSel.appendChild(opt);
   });
-  sel.addEventListener('change', function() { renderSpotList(); });
-})();
 
-// 초기 거점 목록 렌더
-renderSpotList();
-updateSpotCount();
-renderSpotMarkers();
+  // 출발점 드롭다운 갱신
+  var startSel = document.getElementById('start-point-select');
+  startSel.innerHTML = '<option value="custom">직접 선택 (지도 클릭)</option>';
+  currentSidoSpots.forEach(function(spot) {
+    var opt = document.createElement('option');
+    opt.value = spot.id;
+    opt.textContent = spot.name + ' (' + spot.district + ')';
+    startSel.appendChild(opt);
+  });
+
+  // 기본 출발점: 해당 시·도의 첫 번째 관공서 타입 거점
+  var defaultStart = currentSidoSpots.find(function(s) { return s.type === '관공서'; });
+  if (defaultStart) {
+    startSel.value = defaultStart.id;
+    setStartPoint(defaultStart);
+  } else if (currentSidoSpots.length > 0) {
+    startSel.value = currentSidoSpots[0].id;
+    setStartPoint(currentSidoSpots[0]);
+  } else {
+    startPoint = null;
+    hideStartInfo();
+    clearStartMarker();
+  }
+
+  // 거점 목록 & 마커 갱신
+  renderSpotList();
+  updateSpotCount();
+  renderSpotMarkers();
+
+  // 지도 뷰를 해당 시·도 거점이 보이도록 이동
+  if (currentSidoSpots.length > 0) {
+    var points = currentSidoSpots.map(function(s) { return [s.lat, s.lng]; });
+    fitMapBounds(map, points);
+  }
+}
+
+// 초기 로드: 첫 번째 시·도로 설정
+(function initSido() {
+  var sidoSel = document.getElementById('sido-select');
+  if (sidoSel.options.length > 0) {
+    onSidoChange(sidoSel.options[0].value);
+  }
+})();
 
 /* ── 출발점 관련 ── */
 function setStartPoint(spot) {
@@ -307,7 +363,7 @@ function hideStartInfo() {
 /* ── 거점 목록 ── */
 function renderSpotList() {
   var filter = document.getElementById('district-filter').value;
-  var spots = CAMPAIGN_SPOTS;
+  var spots = currentSidoSpots;
   if (filter !== 'all') {
     spots = spots.filter(function(s) { return s.district === filter; });
   }
@@ -350,7 +406,7 @@ function toggleSpot(spotId, checked) {
 
 function selectAllSpots() {
   var filter = document.getElementById('district-filter').value;
-  var spots = CAMPAIGN_SPOTS;
+  var spots = currentSidoSpots;
   if (filter !== 'all') spots = spots.filter(function(s) { return s.district === filter; });
   spots.forEach(function(s) { selectedSpots.add(s.id); });
   updateSpotCount();
@@ -362,7 +418,7 @@ function selectRecommendedSpots() {
   // 추천: voterReach 6000 이상인 거점만
   clearAllSpots();
   var filter = document.getElementById('district-filter').value;
-  var spots = CAMPAIGN_SPOTS;
+  var spots = currentSidoSpots;
   if (filter !== 'all') spots = spots.filter(function(s) { return s.district === filter; });
   spots.forEach(function(s) {
     if (s.voterReach >= 6000) selectedSpots.add(s.id);
@@ -389,7 +445,7 @@ function renderSpotMarkers() {
   spotMarkers.forEach(function(m) { map.removeLayer(m); });
   spotMarkers = [];
 
-  CAMPAIGN_SPOTS.forEach(function(spot) {
+  currentSidoSpots.forEach(function(spot) {
     var isSelected = selectedSpots.has(spot.id);
     var icon = L.divIcon({
       className: 'custom-div-icon',
@@ -448,7 +504,7 @@ async function runOptimization() {
 
   try {
     // 선택된 거점 모으기
-    var spots = CAMPAIGN_SPOTS.filter(function(s) { return selectedSpots.has(s.id); });
+    var spots = currentSidoSpots.filter(function(s) { return selectedSpots.has(s.id); });
     var numVehicles = Math.min(vehicleCount, spots.length);
     var startTime = document.getElementById('start-time').value;
 
@@ -472,7 +528,7 @@ async function runOptimization() {
     for (var v = 0; v < results.length; v++) {
       allRouteSpots = allRouteSpots.concat(results[v].clusterSpots);
     }
-    var coverage = calculateCoverage(allRouteSpots, CAMPAIGN_SPOTS, null);
+    var coverage = calculateCoverage(allRouteSpots, currentSidoSpots, null);
 
     // 4. OSRM 실제 도로 경로 조회 시도
     document.getElementById('loading-text').textContent = '도로 경로 조회 중...';

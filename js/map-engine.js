@@ -6,13 +6,13 @@
 /**
  * Leaflet 지도를 초기화한다.
  * @param {string} containerId - 지도를 렌더링할 DOM 요소 ID
- * @param {Array} center - [lat, lng] 중심 좌표 (기본: 수원시청)
- * @param {number} zoom - 줌 레벨 (기본: 12)
+ * @param {Array} center - [lat, lng] 중심 좌표 (기본: 대한민국 중심)
+ * @param {number} zoom - 줌 레벨 (기본: 7)
  * @returns {L.Map} 지도 인스턴스
  */
 function initMap(containerId, center, zoom) {
-  center = center || [37.2636, 127.0286];
-  zoom = zoom || 12;
+  center = center || [36.5, 127.8];
+  zoom = zoom || 7;
 
   var map = L.map(containerId, {
     center: center,

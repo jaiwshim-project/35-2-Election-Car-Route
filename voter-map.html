@@ -72,6 +72,14 @@
         </button>
       </div>
 
+      <!-- Sido Selector -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">시·도 선택</label>
+        <select id="sido-select" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white" onchange="onSidoChange()">
+          <option value="">전체 (전국)</option>
+        </select>
+      </div>
+
       <!-- District Selector -->
       <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">선거구 선택</label>
@@ -294,6 +302,7 @@ initPage('voter-map');
 
 /* ── 상태 변수 ── */
 var map, heatLayer, markerGroup, clusterMarkerGroup, routeLayerGroup;
+var currentSido = '';
 var currentDistrict = '';
 var activeTimePeriod = 'commute-morning';
 var populationType = 'floating';
@@ -303,20 +312,23 @@ var routeVisible = false;
 
 /* ── 초기화 ── */
 (function init() {
-  // 지도 초기화
-  map = initMap('map', [37.2636, 127.0286], 12);
+  // 지도 초기화 (전국 뷰)
+  map = initMap('map', [36.5, 127.8], 7);
   markerGroup = createLayerGroup(map);
   clusterMarkerGroup = createLayerGroup(map);
   routeLayerGroup = createLayerGroup(map);
 
-  // 선거구 드롭다운 채우기
-  var sel = document.getElementById('district-select');
-  DISTRICTS.forEach(function(d) {
+  // 시·도 드롭다운 채우기
+  var sidoSel = document.getElementById('sido-select');
+  getSidoList().forEach(function(sido) {
     var opt = document.createElement('option');
-    opt.value = d.dong;
-    opt.textContent = d.sigungu + ' ' + d.dong;
-    sel.appendChild(opt);
+    opt.value = sido;
+    opt.textContent = sido;
+    sidoSel.appendChild(opt);
   });
+
+  // 선거구 드롭다운: 초기엔 전체 선거구
+  populateDistrictSelect('');
 
   // 필터 칩 이벤트
   document.querySelectorAll('.filter-chip input').forEach(function(cb) {
@@ -331,12 +343,40 @@ var routeVisible = false;
   updateMap();
 })();
 
+/* ── 선거구 드롭다운 갱신 ── */
+function populateDistrictSelect(sido) {
+  var sel = document.getElementById('district-select');
+  // 기존 옵션 제거 (첫 번째 "전체 보기"만 남김)
+  while (sel.options.length > 1) sel.remove(1);
+  var districts = sido ? getDistrictsBySido(sido) : DISTRICTS;
+  districts.forEach(function(d) {
+    var opt = document.createElement('option');
+    opt.value = d.dong;
+    opt.textContent = d.sigungu + ' ' + d.dong;
+    sel.appendChild(opt);
+  });
+  sel.value = '';
+}
+
+/* ── 시·도 변경 ── */
+function onSidoChange() {
+  currentSido = document.getElementById('sido-select').value;
+  currentDistrict = '';
+  populateDistrictSelect(currentSido);
+  clusterResults = [];
+  document.getElementById('cluster-results').classList.add('hidden');
+  clearLayers(map, clusterMarkerGroup);
+  if (routeVisible) hideRouteOverlay();
+  updateMap();
+}
+
 /* ── 선거구 변경 ── */
 function onDistrictChange() {
   currentDistrict = document.getElementById('district-select').value;
   clusterResults = [];
   document.getElementById('cluster-results').classList.add('hidden');
   clearLayers(map, clusterMarkerGroup);
+  if (routeVisible) hideRouteOverlay();
   updateMap();
 }
 
@@ -462,7 +502,7 @@ function updateLegendStatus() {
     'night': '야간 (19~22시)'
   };
   var ageText = activeAgeGroups.length === 5 ? '전 연령대' : activeAgeGroups.map(function(a) { return a + '대' + (a === 60 ? '+' : ''); }).join(', ');
-  var distText = currentDistrict || '전체 선거구';
+  var distText = currentDistrict ? currentDistrict : (currentSido ? currentSido + ' 전체' : '전국 전체');
   var popText = populationType === 'floating' ? '유동인구' : '거주인구';
   var el = document.getElementById('legend-filter-status');
   if (el) {
@@ -486,6 +526,8 @@ function updateMap() {
   if (currentDistrict) {
     spots = getSpotsForDistrict(currentDistrict);
     district = DISTRICTS.find(function(d) { return d.dong === currentDistrict; });
+  } else if (currentSido) {
+    spots = getSpotsBySido(currentSido);
   } else {
     spots = CAMPAIGN_SPOTS;
   }
@@ -532,6 +574,12 @@ function updateMap() {
   // 지도 맞춤
   if (currentDistrict && district) {
     map.setView([district.lat, district.lng], 13);
+  } else if (currentSido && spots.length > 0) {
+    // 시·도 전체: 해당 시·도의 거점들이 모두 보이도록 bounds 맞춤
+    var bounds = L.latLngBounds(spots.map(function(s) { return [s.lat, s.lng]; }));
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
+  } else if (!currentSido && !currentDistrict) {
+    map.setView([36.5, 127.8], 7);
   }
 
   // 거점 정보
@@ -622,6 +670,8 @@ function runClusterAnalysis() {
     var spots;
     if (currentDistrict) {
       spots = getSpotsForDistrict(currentDistrict);
+    } else if (currentSido) {
+      spots = getSpotsBySido(currentSido);
     } else {
       spots = CAMPAIGN_SPOTS;
     }
@@ -717,8 +767,11 @@ function toggleRouteOverlay() {
     var spots;
     if (currentDistrict) {
       spots = getSpotsForDistrict(currentDistrict);
+    } else if (currentSido) {
+      // 시·도 전체: 해당 시·도의 거점 중 상위 20개
+      spots = getSpotsBySido(currentSido).slice().sort(function(a, b) { return b.voterReach - a.voterReach; }).slice(0, 20);
     } else {
-      // 전체 보기: voterReach 높은 순 정렬 후 상위 20개
+      // 전국 전체: voterReach 높은 순 정렬 후 상위 20개
       spots = CAMPAIGN_SPOTS.slice().sort(function(a, b) { return b.voterReach - a.voterReach; }).slice(0, 20);
     }
 

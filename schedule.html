@@ -82,6 +82,11 @@ AI 일정 추천
 </div>
 </div>
 <div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">시·도</label>
+<select id="eventSido" class="w-full border border-gray-300 rounded-lg px-4 py-2.5">
+</select>
+</div>
+<div>
 <label class="block text-sm font-semibold text-gray-700 mb-1">유세 거점</label>
 <select id="eventSpot" class="w-full border border-gray-300 rounded-lg px-4 py-2.5">
 <option value="">선택하세요</option>
@@ -140,14 +145,33 @@ const STORAGE_KEY = 'electmap_schedule_events';
 const vehicleColors = ['bg-blue-100 text-blue-700', 'bg-emerald-100 text-emerald-700', 'bg-amber-100 text-amber-700', 'bg-purple-100 text-purple-700', 'bg-rose-100 text-rose-700'];
 const vehicleBorderColors = ['border-l-blue-500', 'border-l-emerald-500', 'border-l-amber-500', 'border-l-purple-500', 'border-l-rose-500'];
 
-// Populate spot dropdown
-const spotSelect = document.getElementById('eventSpot');
-CAMPAIGN_SPOTS.forEach(s => {
+// Populate sido dropdown
+const sidoSelect = document.getElementById('eventSido');
+getSidoList().forEach(sido => {
   const opt = document.createElement('option');
-  opt.value = s.id;
-  opt.textContent = `${s.name} (${s.district})`;
-  spotSelect.appendChild(opt);
+  opt.value = sido;
+  opt.textContent = sido;
+  sidoSelect.appendChild(opt);
 });
+
+const spotSelect = document.getElementById('eventSpot');
+function populateEventSpots(sido) {
+  spotSelect.innerHTML = '<option value="">선택하세요</option>';
+  const spots = getSpotsBySido(sido);
+  spots.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = `${s.name} (${s.district})`;
+    spotSelect.appendChild(opt);
+  });
+}
+
+sidoSelect.addEventListener('change', function() {
+  populateEventSpots(this.value);
+});
+
+// Initialize spots for first sido
+populateEventSpots(sidoSelect.value);
 
 // Event storage
 function loadEvents() {

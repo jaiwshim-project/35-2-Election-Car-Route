@@ -74,7 +74,7 @@ function renderFooter() {
 </div>
 <div>
 <h4 class="text-white font-semibold mb-4">고객지원</h4>
-<ul class="space-y-2 text-sm"><li>전화: 010-2397-5734</li><li>이메일: JAIWSHIM@gmail.com</li><li>운영: 평일 09:00~18:00</li></ul>
+<ul class="space-y-2 text-sm"><li>전화: 010-2397-5734</li><li>이메일: jaiwshim@gmail.com</li><li>운영: 평일 09:00~18:00</li></ul>
 </div>
 </div>
 <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">

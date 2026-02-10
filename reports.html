@@ -30,10 +30,15 @@
 <!-- Report Generation Form -->
 <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mb-10 no-print">
 <h2 class="text-xl font-bold mb-6">리포트 생성</h2>
-<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
 <div>
 <label class="block text-sm font-semibold text-gray-700 mb-1">선거 유형</label>
 <select id="rptElectionType" class="w-full border border-gray-300 rounded-lg px-4 py-2.5">
+</select>
+</div>
+<div>
+<label class="block text-sm font-semibold text-gray-700 mb-1">시·도</label>
+<select id="rptSido" class="w-full border border-gray-300 rounded-lg px-4 py-2.5">
 </select>
 </div>
 <div>
@@ -186,13 +191,33 @@ ELECTION_TYPES.forEach(e => {
 });
 elTypeSelect.value = 'basic_head';
 
-const distSelect = document.getElementById('rptDistrict');
-DISTRICTS.forEach(d => {
+// Populate sido dropdown
+const sidoSelect = document.getElementById('rptSido');
+getSidoList().forEach(sido => {
   const opt = document.createElement('option');
-  opt.value = d.code;
-  opt.textContent = `${d.sigungu} ${d.dong}`;
-  distSelect.appendChild(opt);
+  opt.value = sido;
+  opt.textContent = sido;
+  sidoSelect.appendChild(opt);
 });
+
+const distSelect = document.getElementById('rptDistrict');
+function populateRptDistricts(sido) {
+  distSelect.innerHTML = '';
+  const districts = getDistrictsBySido(sido);
+  districts.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.code;
+    opt.textContent = `${d.sigungu} ${d.dong}`;
+    distSelect.appendChild(opt);
+  });
+}
+
+sidoSelect.addEventListener('change', function() {
+  populateRptDistricts(this.value);
+});
+
+// Initialize districts for first sido
+populateRptDistricts(sidoSelect.value);
 
 function generateReport() {
   const typeId = document.getElementById('rptElectionType').value;

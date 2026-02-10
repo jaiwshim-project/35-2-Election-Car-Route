@@ -26,6 +26,8 @@
     <div class="flex items-center gap-3">
       <select id="election-type-select" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500" onchange="onSelectionChange()">
       </select>
+      <select id="sido-select" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500" onchange="onSidoChange()">
+      </select>
       <select id="district-select" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500" onchange="onSelectionChange()">
       </select>
     </div>
@@ -139,7 +141,9 @@ initPage('dashboard');
 
 /* ── 상태 ── */
 var miniMap, miniMapHeatLayer, radarChart, ageChart;
-var selectedDistrictIdx = 0;
+var selectedDistrict = null;
+var currentSido = '';
+var filteredDistricts = [];
 
 /* ── 초기화 ── */
 (function init() {
@@ -153,17 +157,22 @@ var selectedDistrictIdx = 0;
   });
   etSel.value = 'basic_head';
 
-  // 선거구 드롭다운
-  var dSel = document.getElementById('district-select');
-  DISTRICTS.forEach(function(d, i) {
+  // 시·도 드롭다운
+  var sidoSel = document.getElementById('sido-select');
+  var sidoList = getSidoList();
+  sidoList.forEach(function(sido) {
     var opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = d.sigungu + ' ' + d.dong;
-    dSel.appendChild(opt);
+    opt.value = sido;
+    opt.textContent = sido;
+    sidoSel.appendChild(opt);
   });
 
-  // 미니 지도
-  miniMap = initMap('mini-map', [37.2636, 127.0286], 12);
+  // 첫 번째 시·도 선택 후 선거구 드롭다운 채우기
+  currentSido = sidoList[0] || '';
+  populateDistrictDropdown(currentSido);
+
+  // 미니 지도 (대한민국 전체)
+  miniMap = initMap('mini-map', [36.5, 127.8], 7);
 
   // 과거 선거 테이블
   renderPastElections();
@@ -172,15 +181,44 @@ var selectedDistrictIdx = 0;
   updateDashboard();
 })();
 
+/* ── 선거구 드롭다운 채우기 ── */
+function populateDistrictDropdown(sido) {
+  var dSel = document.getElementById('district-select');
+  dSel.innerHTML = '';
+  filteredDistricts = getDistrictsBySido(sido);
+  filteredDistricts.forEach(function(d, i) {
+    var opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = d.sigungu + ' ' + d.dong;
+    dSel.appendChild(opt);
+  });
+  // 첫 번째 선거구 자동 선택
+  if (filteredDistricts.length > 0) {
+    dSel.value = 0;
+    selectedDistrict = filteredDistricts[0];
+  } else {
+    selectedDistrict = null;
+  }
+}
+
+/* ── 시·도 변경 ── */
+function onSidoChange() {
+  currentSido = document.getElementById('sido-select').value;
+  populateDistrictDropdown(currentSido);
+  updateDashboard();
+}
+
 /* ── 선택 변경 ── */
 function onSelectionChange() {
-  selectedDistrictIdx = parseInt(document.getElementById('district-select').value) || 0;
+  var idx = parseInt(document.getElementById('district-select').value) || 0;
+  selectedDistrict = filteredDistricts[idx] || null;
   updateDashboard();
 }
 
 /* ── 대시보드 업데이트 ── */
 function updateDashboard() {
-  var dist = DISTRICTS[selectedDistrictIdx];
+  var dist = selectedDistrict;
+  if (!dist) return;
   var elType = getElectionType(document.getElementById('election-type-select').value);
 
   updateMetricCards(dist, elType);
