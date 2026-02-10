@@ -38,7 +38,7 @@ function renderHeader(active) {
     `<a href="${n.href}" class="px-3 py-2 rounded-lg text-sm font-medium transition ${active === n.key ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'}">${n.label}</a>`
   ).join('')}</nav>
 <div class="hidden xl:flex items-center gap-3">
-<a href="report-sample.html" class="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">리포트 샘플</a>
+<a href="user-manual.html" class="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">사용자 매뉴얼</a>
 </div>
 <button id="mobile-toggle" class="xl:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg" onclick="toggleMobileMenu()">
 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -46,7 +46,7 @@ function renderHeader(active) {
 </div>
 <div id="mobile-menu" class="hidden xl:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1 shadow-lg">
 ${nav.map(n => `<a href="${n.href}" class="block px-3 py-2.5 rounded-lg text-sm ${active === n.key ? 'text-blue-600 bg-blue-50 font-semibold' : 'text-gray-700 hover:bg-gray-50'}">${n.label}</a>`).join('')}
-<a href="report-sample.html" class="block mt-2 text-center bg-blue-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg">리포트 샘플</a>
+<a href="user-manual.html" class="block mt-2 text-center bg-blue-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg">사용자 매뉴얼</a>
 </div>
 </header>`;
 }

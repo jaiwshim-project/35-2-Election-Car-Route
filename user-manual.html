@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>사용자 매뉴얼 — 일렉션맵AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Pretendard Variable','Pretendard','system-ui','sans-serif']}}}}</script>
+<link rel="stylesheet" href="css/custom.css">
+<style>
+  .manual-tab { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; border: 1.5px solid transparent;
+    background: white; color: #64748b; white-space: nowrap; }
+  .manual-tab:hover { color: #2563eb; background: #eff6ff; }
+  .manual-tab.active { border-color: #2563eb; background: #2563eb; color: white; }
+  .step-num { display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 50%; font-size: 14px; font-weight: 700;
+    color: white; flex-shrink: 0; }
+  .step-box { display: flex; gap: 14px; padding: 14px; border-radius: 12px;
+    border: 1px solid #e2e8f0; background: #fafbfc; margin-bottom: 10px; }
+  .tip-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+    padding: 14px 16px; font-size: 14px; color: #92400e; }
+  .warn-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px;
+    padding: 14px 16px; font-size: 14px; color: #991b1b; }
+  .info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;
+    padding: 14px 16px; font-size: 14px; color: #1e40af; }
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .feature-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; background: white; }
+  .feature-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .feature-card p { font-size: 13px; color: #64748b; line-height: 1.6; }
+  .key-badge { display: inline-block; background: #f1f5f9; border: 1px solid #cbd5e1;
+    border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 600;
+    color: #475569; font-family: monospace; }
+</style>
+</head>
+<body class="antialiased bg-gray-50 text-gray-900">
+<div id="app-header"></div>
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <!-- Page Title -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">&#x1F4D6; 사용자 매뉴얼</h1>
+    <p class="text-sm text-gray-500 mt-1">일렉션맵AI의 각 기능별 상세 사용법을 안내합니다</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-2 overflow-x-auto pb-3 mb-6" id="manual-tabs">
+    <button class="manual-tab active" onclick="showManual('overview', this)">시작하기</button>
+    <button class="manual-tab" onclick="showManual('dashboard', this)">대시보드</button>
+    <button class="manual-tab" onclick="showManual('voter', this)">유권자 분석</button>
+    <button class="manual-tab" onclick="showManual('route', this)">경로 최적화</button>
+    <button class="manual-tab" onclick="showManual('cost', this)">비용 분석</button>
+    <button class="manual-tab" onclick="showManual('competitor', this)">경쟁 분석</button>
+    <button class="manual-tab" onclick="showManual('schedule', this)">일정 관리</button>
+    <button class="manual-tab" onclick="showManual('election', this)">선거 유형</button>
+    <button class="manual-tab" onclick="showManual('ai-report', this)">AI 리포트</button>
+    <button class="manual-tab" onclick="showManual('simulation', this)">시뮬레이션</button>
+  </div>
+
+  <!-- Content -->
+  <div id="manual-content" class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6"></div>
+</div>
+
+<div id="app-footer"></div>
+
+<script src="js/shared.js"></script>
+<script>
+initPage('user-manual');
+
+var MANUAL = {
+
+overview: `
+<div class="mb-5">
+  <h2 class="text-xl font-bold text-gray-900 mb-2">&#x1F680; 일렉션맵AI 시작하기</h2>
+  <p class="text-sm text-gray-600 leading-relaxed">일렉션맵AI는 데이터 기반 AI 선거 전략 플랫폼입니다.<br>유권자 분석부터 경로 최적화, 비용 관리, 경쟁 분석까지 선거에 필요한 모든 도구를 제공합니다.</p>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">&#x1F4CB; 추천 사용 순서</h3>
+<div class="step-box"><span class="step-num bg-indigo-500">1</span><div><strong class="text-sm">선거 유형 확인</strong><p class="text-sm text-gray-500 mt-0.5">출마할 선거 유형(국회의원, 시장, 구청장 등)의 특성과 전략을 확인합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-purple-500">2</span><div><strong class="text-sm">유권자 분석</strong><p class="text-sm text-gray-500 mt-0.5">선거구의 유권자 밀집도, 연령대 분포, 유동인구를 분석합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-blue-500">3</span><div><strong class="text-sm">경로 최적화</strong><p class="text-sm text-gray-500 mt-0.5">유세 차량의 최적 경로를 설계하여 효율적인 유세 동선을 만듭니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-amber-500">4</span><div><strong class="text-sm">비용 분석</strong><p class="text-sm text-gray-500 mt-0.5">법정 선거비용 한도 내에서 예산을 계획하고 관리합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-emerald-500">5</span><div><strong class="text-sm">경쟁 분석 & 시뮬레이션</strong><p class="text-sm text-gray-500 mt-0.5">경쟁 후보와 비교하고, 다양한 시나리오로 결과를 예측합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-pink-500">6</span><div><strong class="text-sm">AI 리포트 & 일정 관리</strong><p class="text-sm text-gray-500 mt-0.5">AI가 제안하는 전략을 확인하고, 유세 일정을 체계적으로 관리합니다.</p></div></div>
+
+<div class="tip-box mt-5">
+  <strong>&#x1F4A1; 팁:</strong> 상단 내비게이션 바의 각 메뉴를 클릭하면 해당 기능 페이지로 바로 이동할 수 있습니다. 내비게이션 바는 스크롤해도 항상 상단에 고정되어 있습니다.
+</div>
+`,
+
+dashboard: `
+<div class="mb-5">
+  <h2 class="text-xl font-bold text-gray-900 mb-2">&#x1F3AF; 대시보드 사용법</h2>
+  <p class="text-sm text-gray-600">선거 전략의 전체 현황을 한눈에 파악하는 종합 대시보드입니다.</p>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">주요 기능</h3>
+<div class="feature-grid mb-5">
+  <div class="feature-card">
+    <h4>&#x1F4CA; 종합 전략 점수</h4>
+    <p>유권자 접근성, 경로 효율성, 비용 관리, 경쟁력 등을 종합하여 100점 만점의 전략 점수를 산출합니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F4C8; 항목별 분석</h4>
+    <p>각 전략 항목의 세부 점수와 등급(A~D)을 확인할 수 있습니다. 점수가 낮은 항목을 우선 개선하세요.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F5FA; 선거구 현황</h4>
+    <p>관할 유권자 수, 유세 거점 수, 경쟁 후보 수 등 핵심 지표를 한눈에 확인합니다.</p>
+  </div>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">사용 방법</h3>
+<div class="step-box"><span class="step-num bg-blue-500">1</span><div><strong class="text-sm">대시보드 페이지 접속</strong><p class="text-sm text-gray-500 mt-0.5">상단 메뉴에서 <span class="key-badge">대시보드</span>를 클릭합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-blue-500">2</span><div><strong class="text-sm">종합 점수 확인</strong><p class="text-sm text-gray-500 mt-0.5">페이지 상단의 종합 전략 점수와 등급을 확인합니다. A등급(80점 이상)이 이상적입니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-blue-500">3</span><div><strong class="text-sm">약점 파악</strong><p class="text-sm text-gray-500 mt-0.5">항목별 점수 중 가장 낮은 항목을 찾아 해당 메뉴에서 개선 작업을 진행합니다.</p></div></div>
+
+<div class="info-box mt-4">
+  <strong>&#x2139;&#xFE0F; 참고:</strong> 대시보드 점수는 다른 메뉴(유권자 분석, 경로 최적화 등)의 분석 결과를 종합하여 자동 계산됩니다. 각 기능을 활용할수록 더 정확한 점수가 산출됩니다.
+</div>
+`,
+
+voter: `
+<div class="mb-5">
+  <h2 class="text-xl font-bold text-gray-900 mb-2">&#x1F465; 유권자 분석 사용법</h2>
+  <p class="text-sm text-gray-600">유권자 밀집도를 지도 위에서 시각적으로 분석하는 기능입니다.</p>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">화면 구성</h3>
+<div class="feature-grid mb-5">
+  <div class="feature-card">
+    <h4>&#x1F5FA; 히트맵</h4>
+    <p>유권자 밀집도를 색상 농도로 표현합니다. 빨간색이 진할수록 유권자가 많은 지역입니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F4CD; 거점 마커</h4>
+    <p>유세에 적합한 거점(교통, 시장, 상업, 공원 등)이 지도 위에 마커로 표시됩니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F50D; 클러스터 분석</h4>
+    <p>유권자가 밀집된 지역을 자동으로 그룹화하여 핵심 유세 구역을 추천합니다.</p>
+  </div>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">사용 방법</h3>
+<div class="step-box"><span class="step-num bg-purple-500">1</span><div><strong class="text-sm">시·도 선택</strong><p class="text-sm text-gray-500 mt-0.5">왼쪽 패널 상단의 <span class="key-badge">시·도 선택</span> 드롭다운에서 분석할 지역을 선택합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-purple-500">2</span><div><strong class="text-sm">선거구 선택</strong><p class="text-sm text-gray-500 mt-0.5"><span class="key-badge">선거구 선택</span>에서 세부 선거구를 지정하면 해당 지역이 확대됩니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-purple-500">3</span><div><strong class="text-sm">연령대 필터 설정</strong><p class="text-sm text-gray-500 mt-0.5">20대~60대+ 연령대 칩을 클릭하여 특정 연령대만 필터링합니다. 활성화된 칩은 파란색으로 표시됩니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-purple-500">4</span><div><strong class="text-sm">시간대 선택</strong><p class="text-sm text-gray-500 mt-0.5">출근(07-09), 점심(11-13), 퇴근(17-19), 야간(19-22) 중 분석할 시간대를 선택합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-purple-500">5</span><div><strong class="text-sm">인구 유형 선택</strong><p class="text-sm text-gray-500 mt-0.5"><span class="key-badge">유동인구</span>와 <span class="key-badge">거주인구</span> 중 선택합니다. 유동인구는 거리 유세에, 거주인구는 방문 유세에 적합합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-purple-500">6</span><div><strong class="text-sm">클러스터 분석 실행</strong><p class="text-sm text-gray-500 mt-0.5"><span class="key-badge">클러스터 분석</span> 버튼을 클릭하면 유권자 밀집 구역이 자동으로 그룹화되어 표시됩니다.</p></div></div>
+
+<div class="tip-box mt-4">
+  <strong>&#x1F4A1; 팁:</strong> 출근 시간대의 유동인구와 야간의 거주인구를 비교하면 효과적인 유세 시간대를 파악할 수 있습니다.
+</div>
+`,
+
+route: `
+<div class="mb-5">
+  <h2 class="text-xl font-bold text-gray-900 mb-2">&#x1F697; 경로 최적화 사용법</h2>
+  <p class="text-sm text-gray-600">유세 차량의 최적 이동 경로를 자동으로 계산하는 핵심 기능입니다.</p>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">왼쪽 패널 입력 순서 (5단계)</h3>
+<div class="step-box"><span class="step-num bg-indigo-500">1</span><div><strong class="text-sm">선거 유형 선택</strong><p class="text-sm text-gray-500 mt-0.5">드롭다운에서 출마할 선거 유형을 선택합니다 (예: 국회의원, 시장, 구청장 등). 세부 유형이 있는 경우 추가 버튼이 나타납니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-purple-500">2</span><div><strong class="text-sm">출마 지역 선택</strong><p class="text-sm text-gray-500 mt-0.5">시·도를 선택합니다. 선거구 단위 선거인 경우 시·군·구까지 선택합니다. 선택하면 해당 지역의 거점이 자동으로 로드됩니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-amber-500">3</span><div><strong class="text-sm">출발점 설정</strong><p class="text-sm text-gray-500 mt-0.5">유세 차량의 출발 위치를 설정합니다. 기본적으로 관공서가 자동 선택되며, 드롭다운에서 다른 거점을 선택하거나 지도를 직접 클릭하여 설정할 수 있습니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-blue-500">4</span><div><strong class="text-sm">유세 거점 설정</strong><p class="text-sm text-gray-500 mt-0.5"><span class="key-badge">-</span> <span class="key-badge">+</span> 버튼이나 숫자 입력으로 거점 수를 조절합니다. 유권자 도달 수 상위 거점이 자동 선택됩니다. <span class="key-badge">상세 보기</span>를 클릭하거나 녹색 토글 바를 클릭하면 오른쪽에 거점 상세 목록이 나타나 개별 선택/해제가 가능합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-emerald-500">5</span><div><strong class="text-sm">차량 설정</strong><p class="text-sm text-gray-500 mt-0.5">차량 대수를 설정합니다 (제한 없음). 유세 시작 시간과 종료 시간을 선택합니다.</p></div></div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3 mt-5">경로 최적화 실행</h3>
+<div class="step-box"><span class="step-num bg-blue-600">&#x25B6;</span><div><strong class="text-sm">경로 최적화 실행 버튼 클릭</strong><p class="text-sm text-gray-500 mt-0.5">VRP(차량경로문제) 알고리즘이 실행되어 각 차량별 최적 경로를 계산합니다. 결과는 지도 위에 차량별 색상으로 표시되고, 하단 패널에 종합 결과가 나타납니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-emerald-600">&#x25B6;</span><div><strong class="text-sm">차량별 경로 상세보기 클릭</strong><p class="text-sm text-gray-500 mt-0.5">팝업 창에서 각 차량의 경로를 SVG 다이어그램으로 확인합니다. 실제 도로 경로 위에 각 정거장의 위치와 이름, 도착 시간이 표시됩니다.</p></div></div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3 mt-5">결과 화면 안내</h3>
+<div class="feature-grid mb-4">
+  <div class="feature-card">
+    <h4>&#x1F5FA; 지도 경로</h4>
+    <p>차량별로 다른 색상의 경로선이 표시됩니다. 각 정거장에는 번호가 붙은 마커가 표시되며, 클릭하면 거점 정보를 볼 수 있습니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F4CA; 하단 결과 패널</h4>
+    <p>종합 탭에서 총 이동거리, 소요시간, 비용, 커버리지를 확인합니다. 각 차량 탭을 클릭하면 차량별 상세 일정표를 볼 수 있습니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x2195; 하단 토글 바</h4>
+    <p>지도 하단의 검은색 수평 바를 클릭하면 결과 패널을 접거나 펼 수 있습니다.</p>
+  </div>
+</div>
+
+<div class="tip-box mt-4">
+  <strong>&#x1F4A1; 팁:</strong> 거점 수를 늘리면 더 넓은 유권자 커버리지를 확보할 수 있지만 이동 시간이 늘어납니다. 차량 대수를 조절하여 적절한 균형을 찾으세요.
+</div>
+
+<div class="warn-box mt-3">
+  <strong>&#x26A0;&#xFE0F; 주의:</strong> 출발점을 설정하지 않거나 거점이 2개 미만이면 경로 최적화를 실행할 수 없습니다.
+</div>
+`,
+
+cost: `
+<div class="mb-5">
+  <h2 class="text-xl font-bold text-gray-900 mb-2">&#x1F4B0; 비용 분석 사용법</h2>
+  <p class="text-sm text-gray-600">선거비용을 법정 한도 내에서 효율적으로 관리하는 기능입니다.</p>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">주요 기능</h3>
+<div class="feature-grid mb-5">
+  <div class="feature-card">
+    <h4>&#x1F4C4; 법정 한도 관리</h4>
+    <p>선거 유형별 법정 선거비용 한도를 자동으로 적용합니다. 한도 초과를 사전에 방지할 수 있습니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F4CA; 항목별 예산 관리</h4>
+    <p>인건비, 차량비, 홍보물, 사무실 등 항목별로 예산을 배분하고 사용률을 모니터링합니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F4B1; 비용 대비 효과 분석</h4>
+    <p>투입 비용 대비 유권자 접촉 효율을 분석하여 가장 효과적인 비용 배분을 제안합니다.</p>
+  </div>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">사용 방법</h3>
+<div class="step-box"><span class="step-num bg-amber-500">1</span><div><strong class="text-sm">선거 유형 선택</strong><p class="text-sm text-gray-500 mt-0.5">출마할 선거 유형을 선택하면 해당 선거의 법정비용 한도가 자동으로 적용됩니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-amber-500">2</span><div><strong class="text-sm">예산 항목 입력</strong><p class="text-sm text-gray-500 mt-0.5">각 비용 항목의 예산을 입력합니다. 총액이 법정 한도를 초과하면 경고가 표시됩니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-amber-500">3</span><div><strong class="text-sm">분석 결과 확인</strong><p class="text-sm text-gray-500 mt-0.5">한도 사용률, 항목별 비중, 잔여 예산 등을 차트와 표로 확인합니다.</p></div></div>
+
+<div class="info-box mt-4">
+  <strong>&#x2139;&#xFE0F; 참고:</strong> 법정 선거비용 한도는 선거 유형과 선거구 규모에 따라 다릅니다. 국회의원 약 2.1억원, 광역단체장 약 9~15억원, 기초단체장 약 1~2.5억원입니다.
+</div>
+`,
+
+competitor: `
+<div class="mb-5">
+  <h2 class="text-xl font-bold text-gray-900 mb-2">&#x1F3C6; 경쟁 분석 사용법</h2>
+  <p class="text-sm text-gray-600">경쟁 후보와의 전략적 포지션을 비교·분석하는 기능입니다.</p>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">주요 기능</h3>
+<div class="feature-grid mb-5">
+  <div class="feature-card">
+    <h4>&#x1F464; 후보 비교</h4>
+    <p>본인과 경쟁 후보의 인지도, 호감도, 조직력 등을 수치로 비교합니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F4CA; 강점/약점 분석</h4>
+    <p>경쟁 후보 대비 강점과 약점을 파악하여 전략적 우위를 확보합니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F4DD; 전략 제안</h4>
+    <p>분석 결과를 기반으로 경쟁 후보 대응 전략을 제안합니다.</p>
+  </div>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">사용 방법</h3>
+<div class="step-box"><span class="step-num bg-rose-500">1</span><div><strong class="text-sm">내 정보 입력</strong><p class="text-sm text-gray-500 mt-0.5">본인의 인지도, 호감도, 조직력 등의 정보를 입력합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-rose-500">2</span><div><strong class="text-sm">경쟁 후보 추가</strong><p class="text-sm text-gray-500 mt-0.5">경쟁 후보를 추가하고 파악한 정보를 입력합니다. 여러 명의 후보를 추가할 수 있습니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-rose-500">3</span><div><strong class="text-sm">비교 분석 확인</strong><p class="text-sm text-gray-500 mt-0.5">종합 순위, 항목별 비교 차트, 강점/약점 분석 결과를 확인합니다.</p></div></div>
+
+<div class="tip-box mt-4">
+  <strong>&#x1F4A1; 팁:</strong> 경쟁 후보의 정보는 완벽하지 않아도 됩니다. 대략적인 수치를 입력하면 AI가 보정하여 분석합니다. 선거가 진행될수록 정보를 업데이트하여 정확도를 높이세요.
+</div>
+`,
+
+schedule: `
+<div class="mb-5">
+  <h2 class="text-xl font-bold text-gray-900 mb-2">&#x1F4C5; 일정 관리 사용법</h2>
+  <p class="text-sm text-gray-600">유세 일정을 체계적으로 계획하고 관리하는 기능입니다.</p>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">주요 기능</h3>
+<div class="feature-grid mb-5">
+  <div class="feature-card">
+    <h4>&#x1F4C6; 캘린더 뷰</h4>
+    <p>월간/주간/일간 캘린더로 유세 일정을 시각적으로 관리합니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x23F0; 시간대별 일정</h4>
+    <p>출근길, 점심, 퇴근길, 야간 등 시간대별로 일정을 세밀하게 배치합니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x2705; 진행률 추적</h4>
+    <p>전체 일정 대비 완료율과 D-day 카운트다운을 실시간으로 확인합니다.</p>
+  </div>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">사용 방법</h3>
+<div class="step-box"><span class="step-num bg-teal-500">1</span><div><strong class="text-sm">일정 추가</strong><p class="text-sm text-gray-500 mt-0.5">날짜, 시간, 장소, 유세 내용을 입력하여 새 일정을 추가합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-teal-500">2</span><div><strong class="text-sm">일정 관리</strong><p class="text-sm text-gray-500 mt-0.5">일정을 완료/예정/진행중으로 상태를 업데이트합니다. 드래그로 일정 순서를 변경할 수 있습니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-teal-500">3</span><div><strong class="text-sm">진행률 모니터링</strong><p class="text-sm text-gray-500 mt-0.5">대시보드에서 전체 진행률과 미완료 일정을 확인하고 조정합니다.</p></div></div>
+
+<div class="tip-box mt-4">
+  <strong>&#x1F4A1; 팁:</strong> 경로 최적화 결과를 일정 관리에 반영하면 유세 동선과 시간 관리를 동시에 최적화할 수 있습니다.
+</div>
+`,
+
+election: `
+<div class="mb-5">
+  <h2 class="text-xl font-bold text-gray-900 mb-2">&#x1F5F3; 선거 유형 사용법</h2>
+  <p class="text-sm text-gray-600">각 선거 유형별 특성, 전략, 법적 규정을 확인하는 기능입니다.</p>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">지원 선거 유형</h3>
+<table class="w-full text-sm border-collapse mb-5">
+  <thead><tr class="bg-gray-50"><th class="px-3 py-2 text-left border-b-2 border-gray-200">선거 유형</th><th class="px-3 py-2 text-left border-b-2 border-gray-200">범위</th><th class="px-3 py-2 text-left border-b-2 border-gray-200">추천 차량</th><th class="px-3 py-2 text-left border-b-2 border-gray-200">선거기간</th></tr></thead>
+  <tbody>
+    <tr class="border-b border-gray-100"><td class="px-3 py-2 font-medium">대통령</td><td class="px-3 py-2 text-gray-500">전국</td><td class="px-3 py-2 text-gray-500">10대+</td><td class="px-3 py-2 text-gray-500">23일</td></tr>
+    <tr class="border-b border-gray-100"><td class="px-3 py-2 font-medium">국회의원</td><td class="px-3 py-2 text-gray-500">선거구</td><td class="px-3 py-2 text-gray-500">2~3대</td><td class="px-3 py-2 text-gray-500">14일</td></tr>
+    <tr class="border-b border-gray-100"><td class="px-3 py-2 font-medium">광역단체장</td><td class="px-3 py-2 text-gray-500">시·도</td><td class="px-3 py-2 text-gray-500">5~10대</td><td class="px-3 py-2 text-gray-500">22일</td></tr>
+    <tr class="border-b border-gray-100"><td class="px-3 py-2 font-medium">기초단체장</td><td class="px-3 py-2 text-gray-500">시·군·구</td><td class="px-3 py-2 text-gray-500">2~4대</td><td class="px-3 py-2 text-gray-500">14일</td></tr>
+    <tr class="border-b border-gray-100"><td class="px-3 py-2 font-medium">교육감</td><td class="px-3 py-2 text-gray-500">시·도</td><td class="px-3 py-2 text-gray-500">3~5대</td><td class="px-3 py-2 text-gray-500">22일</td></tr>
+    <tr class="border-b border-gray-100"><td class="px-3 py-2 font-medium">광역의원</td><td class="px-3 py-2 text-gray-500">선거구</td><td class="px-3 py-2 text-gray-500">1~2대</td><td class="px-3 py-2 text-gray-500">14일</td></tr>
+    <tr class="border-b border-gray-100"><td class="px-3 py-2 font-medium">기초의원</td><td class="px-3 py-2 text-gray-500">선거구</td><td class="px-3 py-2 text-gray-500">1~2대</td><td class="px-3 py-2 text-gray-500">14일</td></tr>
+    <tr><td class="px-3 py-2 font-medium">비례대표</td><td class="px-3 py-2 text-gray-500">전국</td><td class="px-3 py-2 text-gray-500">-</td><td class="px-3 py-2 text-gray-500">14~22일</td></tr>
+  </tbody>
+</table>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">사용 방법</h3>
+<div class="step-box"><span class="step-num bg-violet-500">1</span><div><strong class="text-sm">선거 유형 선택</strong><p class="text-sm text-gray-500 mt-0.5">페이지에서 출마할 선거 유형을 선택하면 해당 유형의 상세 정보가 표시됩니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-violet-500">2</span><div><strong class="text-sm">전략 가이드 확인</strong><p class="text-sm text-gray-500 mt-0.5">선거 유형별 추천 전략, 법정비용 한도, 선거기간, 핵심 유세 포인트를 확인합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-violet-500">3</span><div><strong class="text-sm">다른 메뉴에 반영</strong><p class="text-sm text-gray-500 mt-0.5">확인한 전략을 경로 최적화, 비용 분석 등 다른 기능에 반영하여 구체적인 계획을 수립합니다.</p></div></div>
+`,
+
+'ai-report': `
+<div class="mb-5">
+  <h2 class="text-xl font-bold text-gray-900 mb-2">&#x1F916; AI 리포트 사용법</h2>
+  <p class="text-sm text-gray-600">AI가 모든 분석 결과를 종합하여 전략 리포트를 자동 생성합니다.</p>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">리포트 구성</h3>
+<div class="feature-grid mb-5">
+  <div class="feature-card">
+    <h4>&#x1F4A1; SWOT 분석</h4>
+    <p>강점(Strength), 약점(Weakness), 기회(Opportunity), 위협(Threat)을 AI가 자동 분석합니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F3AF; 행동 계획</h4>
+    <p>분석 결과에 기반한 구체적인 행동 계획을 우선순위별로 제안합니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F4C8; 트렌드 분석</h4>
+    <p>시간에 따른 전략 점수 변화와 여론 동향을 추적합니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F4E3; 맞춤 전략</h4>
+    <p>선거구 특성과 유권자 데이터에 맞는 맞춤형 유세 전략을 제안합니다.</p>
+  </div>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">사용 방법</h3>
+<div class="step-box"><span class="step-num bg-cyan-500">1</span><div><strong class="text-sm">데이터 준비</strong><p class="text-sm text-gray-500 mt-0.5">유권자 분석, 경로 최적화, 비용 분석 등을 먼저 실행하여 기초 데이터를 확보합니다. 데이터가 많을수록 AI 리포트의 정확도가 높아집니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-cyan-500">2</span><div><strong class="text-sm">리포트 생성</strong><p class="text-sm text-gray-500 mt-0.5"><span class="key-badge">AI 리포트</span> 메뉴에서 리포트 생성 버튼을 클릭합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-cyan-500">3</span><div><strong class="text-sm">전략 실행</strong><p class="text-sm text-gray-500 mt-0.5">AI가 제안한 행동 계획을 우선순위에 따라 실행하고, 일정 관리에 반영합니다.</p></div></div>
+
+<div class="info-box mt-4">
+  <strong>&#x2139;&#xFE0F; 참고:</strong> AI 리포트는 입력된 모든 데이터를 종합적으로 분석합니다. 분석 기능을 많이 활용할수록 더 정확하고 실행 가능한 전략을 제안합니다.
+</div>
+`,
+
+simulation: `
+<div class="mb-5">
+  <h2 class="text-xl font-bold text-gray-900 mb-2">&#x1F3AE; 시뮬레이션 사용법</h2>
+  <p class="text-sm text-gray-600">다양한 시나리오에서 선거 결과를 예측하는 기능입니다.</p>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">주요 기능</h3>
+<div class="feature-grid mb-5">
+  <div class="feature-card">
+    <h4>&#x1F3B2; 몬테카를로 시뮬레이션</h4>
+    <p>1,000회 이상의 시뮬레이션을 실행하여 통계적으로 유의미한 당선 확률을 산출합니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F4CA; 시나리오 분석</h4>
+    <p>낙관적/기본/보수적/비관적 시나리오별로 예상 득표율과 당선 확률을 비교합니다.</p>
+  </div>
+  <div class="feature-card">
+    <h4>&#x1F504; What-If 분석</h4>
+    <p>투표율, 지지율, 전략 변경 등 변수를 조정하여 결과 변화를 실시간으로 확인합니다.</p>
+  </div>
+</div>
+
+<h3 class="text-base font-bold text-gray-800 mb-3">사용 방법</h3>
+<div class="step-box"><span class="step-num bg-orange-500">1</span><div><strong class="text-sm">기본 정보 입력</strong><p class="text-sm text-gray-500 mt-0.5">선거구, 후보 수, 현재 지지율 등의 기본 정보를 입력합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-orange-500">2</span><div><strong class="text-sm">변수 설정</strong><p class="text-sm text-gray-500 mt-0.5">예상 투표율, 부동층 비율, 유세 효과 등의 변수를 슬라이더로 조정합니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-orange-500">3</span><div><strong class="text-sm">시뮬레이션 실행</strong><p class="text-sm text-gray-500 mt-0.5"><span class="key-badge">시뮬레이션 실행</span> 버튼을 클릭하면 결과가 산출됩니다.</p></div></div>
+<div class="step-box"><span class="step-num bg-orange-500">4</span><div><strong class="text-sm">결과 해석</strong><p class="text-sm text-gray-500 mt-0.5">시나리오별 득표율, 당선 확률, 결과 분포를 확인합니다. 변수를 조정하여 다양한 상황을 테스트하세요.</p></div></div>
+
+<div class="warn-box mt-4">
+  <strong>&#x26A0;&#xFE0F; 주의:</strong> 시뮬레이션 결과는 입력된 데이터에 기반한 통계적 예측입니다. 실제 선거 결과와 차이가 있을 수 있으며, 참고 자료로 활용하시기 바랍니다.
+</div>
+
+<div class="tip-box mt-3">
+  <strong>&#x1F4A1; 팁:</strong> 선거일이 가까워질수록 최신 여론조사 데이터를 반영하여 시뮬레이션 정확도를 높이세요. 주 1회 이상 업데이트를 권장합니다.
+</div>
+`
+
+};
+
+function showManual(tabId, btnEl) {
+  var tabs = document.querySelectorAll('#manual-tabs .manual-tab');
+  tabs.forEach(function(t) { t.classList.remove('active'); });
+  if (btnEl) btnEl.classList.add('active');
+  document.getElementById('manual-content').innerHTML = MANUAL[tabId] || '<p class="text-gray-500">준비 중입니다.</p>';
+}
+
+showManual('overview', document.querySelector('#manual-tabs .manual-tab'));
+</script>
+</body>
+</html>
