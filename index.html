@@ -19,7 +19,7 @@
 <!-- 맵 카드 (상단 전체 폭) -->
 <div class="relative animate-fade-in mb-12">
 <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 md:p-6">
-<div class="flex items-center gap-2 mb-4"><div class="w-3 h-3 rounded-full bg-red-400"></div><div class="w-3 h-3 rounded-full bg-yellow-400"></div><div class="w-3 h-3 rounded-full bg-green-400"></div><span class="ml-3 text-xs text-gray-400">차량경로 최적화 분석 결과</span></div>
+<div class="flex items-center gap-2 mb-4"><div class="w-3 h-3 rounded-full bg-red-400"></div><div class="w-3 h-3 rounded-full bg-yellow-400"></div><div class="w-3 h-3 rounded-full bg-green-400"></div><span class="ml-3 text-base font-bold text-gray-600">차량경로 최적화 분석 결과</span></div>
 <div class="rounded-xl overflow-hidden mb-4">
 <img src="images/heatmap-hero.jpg" alt="유권자 밀집도 히트맵 — 선거 차량 최적 경로" class="w-full h-[280px] md:h-[420px] object-cover">
 </div>
@@ -31,9 +31,14 @@
 </div>
 <!-- 두 번째 맵 카드: 클러스터 분석 -->
 <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 md:p-6 mt-6">
-<div class="flex items-center gap-2 mb-4"><div class="w-3 h-3 rounded-full bg-red-400"></div><div class="w-3 h-3 rounded-full bg-yellow-400"></div><div class="w-3 h-3 rounded-full bg-green-400"></div><span class="ml-3 text-xs text-gray-400">유권자 밀집 분석 결과</span></div>
-<div class="rounded-xl overflow-hidden">
+<div class="flex items-center gap-2 mb-4"><div class="w-3 h-3 rounded-full bg-red-400"></div><div class="w-3 h-3 rounded-full bg-yellow-400"></div><div class="w-3 h-3 rounded-full bg-green-400"></div><span class="ml-3 text-base font-bold text-gray-600">유권자 밀집 분석 결과</span></div>
+<div class="rounded-xl overflow-hidden mb-4">
 <img src="images/heatmap-cluster.jpg" alt="유권자 밀집도 클러스터 분석 — 강남구" class="w-full h-[280px] md:h-[420px] object-cover">
+</div>
+<div class="grid grid-cols-3 gap-3">
+<div class="bg-gray-50 rounded-lg p-3 text-center"><p class="text-xs text-gray-500">클러스터</p><p class="text-lg font-bold text-violet-600">3개</p></div>
+<div class="bg-gray-50 rounded-lg p-3 text-center"><p class="text-xs text-gray-500">유세 거점</p><p class="text-lg font-bold text-emerald-600">8곳</p></div>
+<div class="bg-gray-50 rounded-lg p-3 text-center"><p class="text-xs text-gray-500">접촉률</p><p class="text-lg font-bold text-blue-600">76%</p></div>
 </div>
 </div>
 <div class="absolute bottom-0 left-0 translate-y-1/2 bg-white rounded-xl shadow-lg border border-gray-100 p-4 animate-slide-left hidden md:block z-10">
