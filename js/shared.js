@@ -35,7 +35,7 @@ function renderHeader(active) {
 <span class="font-bold text-lg text-gray-900">일렉션맵<span class="text-blue-600">AI</span></span>
 </a>
 <nav class="hidden xl:flex items-center gap-1">${nav.map(n =>
-    `<a href="${n.href}" class="px-3 py-2 rounded-lg text-sm font-medium transition border ${active === n.key ? 'text-blue-600 bg-blue-50 border-blue-300' : 'text-gray-600 border-gray-300 hover:text-blue-600 hover:bg-gray-50 hover:border-blue-300'}">${n.label}</a>`
+    `<a href="${n.href}" class="px-3 py-2 rounded-lg text-sm font-medium transition border-2 ${active === n.key ? 'text-blue-700 bg-blue-50 border-blue-500' : 'text-gray-700 border-gray-400 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-400'}">${n.label}</a>`
   ).join('')}</nav>
 <div class="hidden xl:flex items-center gap-3">
 <a href="user-manual.html" class="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">사용자 매뉴얼</a>
