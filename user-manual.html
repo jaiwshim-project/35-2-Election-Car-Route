@@ -567,7 +567,7 @@ function downloadPDF() {
   var tabNames = ['시작하기','대시보드','유권자 분석','경로 최적화','비용 분석','경쟁 분석','일정 관리','선거 유형','AI 리포트','시뮬레이션'];
 
   var container = document.createElement('div');
-  container.style.cssText = 'width:210mm; padding:20mm 15mm; font-family:Pretendard Variable,Pretendard,system-ui,sans-serif; color:#111827; background:white;';
+  container.style.cssText = 'width:210mm; font-family:Pretendard Variable,Pretendard,system-ui,sans-serif; color:#111827; background:white;';
 
   // 표지
   container.innerHTML = '<div style="text-align:center; padding:60px 0 40px;">' +
@@ -599,7 +599,7 @@ function downloadPDF() {
   document.body.appendChild(container);
 
   var opt = {
-    margin: 0,
+    margin: [20, 15, 25, 15],
     filename: '일렉션맵AI_사용자매뉴얼.pdf',
     image: { type: 'jpeg', quality: 0.95 },
     html2canvas: { scale: 2, useCORS: true, logging: false },
@@ -607,13 +607,69 @@ function downloadPDF() {
     pagebreak: { mode: ['css', 'legacy'], before: '[style*="page-break-before"]' }
   };
 
-  html2pdf().set(opt).from(container).save().then(function() {
+  html2pdf().set(opt).from(container).toPdf().get('pdf').then(function(pdf) {
+    var totalPages = pdf.internal.getNumberOfPages();
+
+    // 연락처 마지막 페이지 추가
+    pdf.addPage();
+    totalPages = pdf.internal.getNumberOfPages();
+    var pw = pdf.internal.pageSize.getWidth();
+    var ph = pdf.internal.pageSize.getHeight();
+    var cx = pw / 2;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(18);
+    pdf.setTextColor(37, 99, 235);
+    pdf.text('ElectionMap AI', cx, 60, { align: 'center' });
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(13);
+    pdf.setTextColor(107, 114, 128);
+    pdf.text('Contact Information', cx, 72, { align: 'center' });
+
+    pdf.setDrawColor(37, 99, 235);
+    pdf.setLineWidth(0.5);
+    pdf.line(cx - 25, 78, cx + 25, 78);
+
+    var startY = 95;
+    var items = [
+      { label: 'Tel', value: '010-2397-5734' },
+      { label: 'Email', value: 'jaiwshim@gmail.com' },
+      { label: 'Hours', value: '09:00 ~ 18:00 (Mon-Fri)' }
+    ];
+    items.forEach(function(item, i) {
+      var y = startY + i * 18;
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(11);
+      pdf.setTextColor(37, 99, 235);
+      pdf.text(item.label, cx, y, { align: 'center' });
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(11);
+      pdf.setTextColor(55, 65, 81);
+      pdf.text(item.value, cx, y + 7, { align: 'center' });
+    });
+
+    pdf.setFontSize(9);
+    pdf.setTextColor(156, 163, 175);
+    pdf.text('© 2025 ElectionMap AI. All rights reserved.', cx, ph - 30, { align: 'center' });
+
+    // 모든 페이지에 페이지 번호 추가 (오른쪽 하단, 10pt)
+    for (var i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(10);
+      pdf.setTextColor(156, 163, 175);
+      pdf.text(i + ' / ' + totalPages, pw - 15, ph - 10, { align: 'right' });
+    }
+
+    pdf.save('일렉션맵AI_사용자매뉴얼.pdf');
+  }).then(function() {
     document.body.removeChild(container);
     btn.innerHTML = origHTML;
     btn.style.opacity = '1';
     btn.style.pointerEvents = 'auto';
   }).catch(function() {
-    document.body.removeChild(container);
+    if (container.parentNode) document.body.removeChild(container);
     btn.innerHTML = origHTML;
     btn.style.opacity = '1';
     btn.style.pointerEvents = 'auto';
