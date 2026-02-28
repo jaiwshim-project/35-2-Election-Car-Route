@@ -34,17 +34,17 @@ function renderHeader(active) {
 <div class="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg></div>
 <span class="font-bold text-lg text-gray-900">일렉션맵<span class="text-blue-600">AI</span></span>
 </a>
-<nav class="hidden xl:flex items-center gap-1">${nav.map(n =>
+<nav class="hidden lg:flex items-center gap-1">${nav.map(n =>
     `<a href="${n.href}" class="px-3 py-2 rounded-lg text-sm font-medium transition" style="border:2px solid ${active === n.key ? '#2563eb' : '#4b5563'}" onmouseover="this.style.borderColor='#3b82f6';this.style.background='#eff6ff';this.style.color='#2563eb'" onmouseout="this.style.borderColor='${active === n.key ? '#2563eb' : '#4b5563'}';this.style.background='';this.style.color=''">${n.label}</a>`
   ).join('')}</nav>
-<div class="hidden xl:flex items-center gap-3">
+<div class="hidden lg:flex items-center gap-3">
 <a href="user-manual.html" class="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">사용자 매뉴얼</a>
 </div>
-<button id="mobile-toggle" class="xl:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg" onclick="toggleMobileMenu()">
+<button id="mobile-toggle" class="lg:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg" onclick="toggleMobileMenu()">
 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
 </button>
 </div>
-<div id="mobile-menu" class="hidden xl:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1 shadow-lg">
+<div id="mobile-menu" class="hidden lg:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1 shadow-lg">
 ${nav.map(n => `<a href="${n.href}" class="block px-3 py-2.5 rounded-lg text-sm ${active === n.key ? 'text-blue-600 bg-blue-50 font-semibold' : 'text-gray-700 hover:bg-gray-50'}">${n.label}</a>`).join('')}
 <a href="user-manual.html" class="block mt-2 text-center bg-blue-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg">사용자 매뉴얼</a>
 </div>
