@@ -578,7 +578,8 @@ function downloadPDF() {
   }
 
   var container = document.createElement('div');
-  container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:white;font-family:Pretendard Variable,Pretendard,system-ui,sans-serif;color:#111827;';
+  // position:absolute 사용 — fixed는 브라우저가 뷰포트 밖 요소 렌더링을 생략해 백지 발생
+  container.style.cssText = 'position:absolute;left:-9999px;top:0;width:794px;background:white;font-family:Pretendard Variable,Pretendard,system-ui,sans-serif;color:#111827;';
 
   // 표지
   container.innerHTML = '<div style="text-align:center;padding:60px 0 40px;">' +
@@ -598,16 +599,13 @@ function downloadPDF() {
         '<span style="font-size:12px;color:#9ca3af;">Chapter ' + (i + 1) + '</span></div>';
     }).join('') + '</div>';
 
-  // 각 탭 콘텐츠 삽입 — 이미지 제거(html2canvas 캔버스 크기 초과 방지)
+  // 각 탭 콘텐츠 삽입 (이미지 포함)
   tabOrder.forEach(function(tabId, idx) {
     var section = document.createElement('div');
     section.style.cssText = 'page-break-before:always;padding-top:20px;';
-    var content = MANUAL[tabId]
-      // 이미지 태그 제거 (캔버스 크기 폭발 방지)
-      .replace(/<img[^>]*>/gi, '<div style="background:#f1f5f9;border-radius:8px;padding:16px;text-align:center;color:#94a3b8;font-size:12px;margin:12px 0;">[이미지 — 실제 화면에서 확인]</div>');
     section.innerHTML =
       '<div style="display:inline-block;background:#2563eb;color:white;font-size:11px;font-weight:700;padding:3px 12px;border-radius:4px;margin-bottom:16px;">Chapter ' + (idx + 1) + ' — ' + tabNames[idx] + '</div>' +
-      content;
+      MANUAL[tabId];
     container.appendChild(section);
   });
 
@@ -618,12 +616,13 @@ function downloadPDF() {
     filename: '일렉션맵AI_사용자매뉴얼.pdf',
     image: { type: 'jpeg', quality: 0.92 },
     html2canvas: {
-      scale: 1.5,          // 2 → 1.5: 캔버스 크기 초과 방지
+      scale: 1,            // 스케일 1: 이미지 포함 시 캔버스 크기 초과 방지
       useCORS: true,
-      allowTaint: true,    // CORS 이미지 오류 무시
+      allowTaint: true,
       logging: false,
       scrollX: 0,
-      scrollY: 0
+      scrollY: 0,
+      windowWidth: 794     // 컨테이너 너비에 맞춰 레이아웃 계산
     },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak: { mode: ['css', 'legacy'] }
