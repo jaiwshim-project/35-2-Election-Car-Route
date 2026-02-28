@@ -15,8 +15,8 @@
   .manual-tab.active { border-color: #2563eb; background: #2563eb; color: white; }
   .manual-img { width: 100%; border-radius: 12px; border: 1px solid #e2e8f0; margin: 16px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
   .mock-screen { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin: 16px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-  .mock-screen .dots { display: flex; gap: 6px; margin-bottom: 10px; }
-  .mock-screen .dots span { width: 10px; height: 10px; border-radius: 50%; }
+  .mock-screen .dots { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; }
+  .mock-screen .dots span { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
   .mock-screen .mock-body { background: white; border-radius: 8px; padding: 16px; min-height: 100px; }
   .step-num { display: inline-flex; align-items: center; justify-content: center;
     width: 28px; height: 28px; border-radius: 50%; font-size: 14px; font-weight: 700;
@@ -88,17 +88,17 @@ overview: `
 </div>
 
 <div class="mock-screen mb-5">
-  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span class="ml-2 text-xs text-gray-400" style="line-height:10px">일렉션맵AI 랜딩 페이지</span></div>
+  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span style="width:100%; margin-top:4px; font-size:11px; color:#9ca3af; line-height:1.4;">일렉션맵AI 랜딩 페이지</span></div>
   <img src="images/landing-page.jpg" alt="일렉션맵AI 랜딩 페이지" style="width:100%; border-radius:8px; object-fit:cover;">
 </div>
 
-<div class="grid md:grid-cols-2 gap-4 my-5">
+<div style="display:grid; grid-template-columns:1fr; gap:16px; margin:20px 0;">
   <div class="mock-screen">
-    <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span class="ml-2 text-xs text-gray-400" style="line-height:10px">차량경로 최적화 분석 결과</span></div>
+    <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span style="width:100%; margin-top:4px; font-size:11px; color:#9ca3af; line-height:1.4;">차량경로 최적화 분석 결과</span></div>
     <img src="images/heatmap-hero.jpg" alt="경로 최적화 예시" style="width:100%; border-radius:8px; object-fit:cover; height:180px;">
   </div>
   <div class="mock-screen">
-    <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span class="ml-2 text-xs text-gray-400" style="line-height:10px">유권자 밀집 분석 결과</span></div>
+    <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span style="width:100%; margin-top:4px; font-size:11px; color:#9ca3af; line-height:1.4;">유권자 밀집 분석 결과</span></div>
     <img src="images/heatmap-cluster.jpg" alt="유권자 분석 예시" style="width:100%; border-radius:8px; object-fit:cover; height:180px;">
   </div>
 </div>
@@ -123,7 +123,7 @@ dashboard: `
 </div>
 
 <div class="mock-screen">
-  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span class="ml-2 text-xs text-gray-400" style="line-height:10px">대시보드 화면 예시</span></div>
+  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span style="width:100%; margin-top:4px; font-size:11px; color:#9ca3af; line-height:1.4;">대시보드 화면 예시</span></div>
   <div class="mock-body">
     <div style="display:flex; gap:12px; flex-wrap:wrap;">
       <div style="flex:1; min-width:120px; background:#eff6ff; border-radius:8px; padding:12px; text-align:center;">
@@ -177,7 +177,7 @@ voter: `
 </div>
 
 <div class="mock-screen">
-  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span class="ml-2 text-xs text-gray-400" style="line-height:10px">유권자 밀집도 분석 — 강남구 클러스터</span></div>
+  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span style="width:100%; margin-top:4px; font-size:11px; color:#9ca3af; line-height:1.4;">유권자 밀집도 분석 — 강남구 클러스터</span></div>
   <img src="images/heatmap-cluster.jpg" alt="유권자 밀집도 클러스터 분석" style="width:100%; border-radius:8px; object-fit:cover; max-height:320px;">
 </div>
 
@@ -217,7 +217,7 @@ route: `
 </div>
 
 <div class="mock-screen">
-  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span class="ml-2 text-xs text-gray-400" style="line-height:10px">차량 경로 최적화 — 서울 2개 차량 동시 운행</span></div>
+  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span style="width:100%; margin-top:4px; font-size:11px; color:#9ca3af; line-height:1.4;">차량 경로 최적화 — 서울 2개 차량 동시 운행</span></div>
   <img src="images/heatmap-hero.jpg" alt="차량 경로 최적화 결과" style="width:100%; border-radius:8px; object-fit:cover; max-height:320px;">
 </div>
 
@@ -264,7 +264,7 @@ cost: `
 </div>
 
 <div class="mock-screen">
-  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span class="ml-2 text-xs text-gray-400" style="line-height:10px">비용 분석 화면 예시</span></div>
+  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span style="width:100%; margin-top:4px; font-size:11px; color:#9ca3af; line-height:1.4;">비용 분석 화면 예시</span></div>
   <div class="mock-body">
     <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
       <div style="flex:1; min-width:100px; background:#fefce8; border-radius:8px; padding:10px; text-align:center;">
@@ -320,7 +320,7 @@ competitor: `
 </div>
 
 <div class="mock-screen">
-  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span class="ml-2 text-xs text-gray-400" style="line-height:10px">경쟁 후보 비교 분석 예시</span></div>
+  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span style="width:100%; margin-top:4px; font-size:11px; color:#9ca3af; line-height:1.4;">경쟁 후보 비교 분석 예시</span></div>
   <div class="mock-body">
     <div style="display:flex; gap:8px; align-items:end; justify-content:center; height:100px; margin-bottom:8px;">
       <div style="text-align:center;"><div style="width:48px; background:linear-gradient(to top,#3b82f6,#60a5fa); border-radius:6px 6px 0 0; height:80px;"></div><p style="font-size:10px; margin-top:4px; font-weight:700; color:#3b82f6;">나 (78)</p></div>
@@ -364,7 +364,7 @@ schedule: `
 </div>
 
 <div class="mock-screen">
-  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span class="ml-2 text-xs text-gray-400" style="line-height:10px">유세 일정 캘린더 예시</span></div>
+  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span style="width:100%; margin-top:4px; font-size:11px; color:#9ca3af; line-height:1.4;">유세 일정 캘린더 예시</span></div>
   <div class="mock-body">
     <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; font-size:10px; text-align:center;">
       <span style="color:#6b7280; font-weight:700;">일</span><span style="color:#6b7280; font-weight:700;">월</span><span style="color:#6b7280; font-weight:700;">화</span><span style="color:#6b7280; font-weight:700;">수</span><span style="color:#6b7280; font-weight:700;">목</span><span style="color:#6b7280; font-weight:700;">금</span><span style="color:#6b7280; font-weight:700;">토</span>
@@ -412,7 +412,7 @@ election: `
 </div>
 
 <div class="mock-screen">
-  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span class="ml-2 text-xs text-gray-400" style="line-height:10px">선거 유형 선택 화면 예시</span></div>
+  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span style="width:100%; margin-top:4px; font-size:11px; color:#9ca3af; line-height:1.4;">선거 유형 선택 화면 예시</span></div>
   <div class="mock-body">
     <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; font-size:11px; text-align:center;">
       <div style="background:#eff6ff; border:2px solid #3b82f6; border-radius:8px; padding:10px;"><span style="font-size:20px;">&#x1F3DB;</span><p style="font-weight:700; color:#1d4ed8; margin-top:4px;">대통령</p></div>
@@ -451,7 +451,7 @@ election: `
 </div>
 
 <div class="mock-screen">
-  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span class="ml-2 text-xs text-gray-400" style="line-height:10px">AI 전략 리포트 예시</span></div>
+  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span style="width:100%; margin-top:4px; font-size:11px; color:#9ca3af; line-height:1.4;">AI 전략 리포트 예시</span></div>
   <div class="mock-body">
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:11px;">
       <div style="background:#dbeafe; border-radius:8px; padding:10px;"><strong style="color:#1d4ed8;">S 강점</strong><p style="color:#3b82f6; margin-top:4px;">높은 유권자 접촉률 (76%)</p></div>
@@ -499,7 +499,7 @@ simulation: `
 </div>
 
 <div class="mock-screen">
-  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span class="ml-2 text-xs text-gray-400" style="line-height:10px">시뮬레이션 결과 예시</span></div>
+  <div class="dots"><span class="bg-red-400"></span><span class="bg-yellow-400"></span><span class="bg-green-400"></span><span style="width:100%; margin-top:4px; font-size:11px; color:#9ca3af; line-height:1.4;">시뮬레이션 결과 예시</span></div>
   <div class="mock-body">
     <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
       <div style="flex:1; min-width:100px; background:#f0fdf4; border-radius:8px; padding:10px; text-align:center;">
@@ -606,7 +606,7 @@ function downloadPDF() {
     '  .chapter-badge{display:inline-block;background:#2563eb;color:white;font-size:11px;font-weight:700;padding:3px 12px;border-radius:4px;margin-bottom:18px}' +
     /* 매뉴얼 공통 스타일 복사 */
     '  .mock-screen{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin:14px 0;box-shadow:0 2px 8px rgba(0,0,0,0.05)}' +
-    '  .mock-screen .dots{display:flex;gap:6px;margin-bottom:10px}' +
+    '  .mock-screen .dots{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px}' +
     '  .mock-screen .dots span{width:10px;height:10px;border-radius:50%;display:inline-block}' +
     '  .mock-screen .mock-body{background:white;border-radius:8px;padding:14px;min-height:80px}' +
     '  .step-num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-size:13px;font-weight:700;color:white;flex-shrink:0}' +
