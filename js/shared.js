@@ -26,7 +26,8 @@ function renderHeader(active) {
     { href: 'election-types.html', label: '선거 유형', key: 'election-types' },
     { href: 'reports.html', label: 'AI 리포트', key: 'reports' },
     { href: 'simulation.html', label: '시뮬레이션', key: 'simulation' },
-    { href: 'pricing.html', label: '요금제', key: 'pricing' }
+    { href: 'pricing.html', label: '요금제', key: 'pricing' },
+    { href: 'guide.html', label: '안내자료', key: 'guide' }
   ];
   return `<header class="sticky top-0 z-50 bg-sky-100/90 backdrop-blur border-b border-sky-200">
 <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
